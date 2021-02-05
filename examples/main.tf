@@ -1,20 +1,20 @@
 terraform {
   required_providers {
-    hashicups = {
-      version = "0.2"
-      source  = "hashicorp.com/edu/hashicups"
+    rhoas = {
+      version = "0.1"
+      source  = "redhat.com/cloud/rhoas"
     }
   }
 }
 
-provider "hashicups" {}
+provider "rhoas" {}
 
-module "psl" {
-  source = "./coffee"
-
-  coffee_name = "Packer Spiced Latte"
+data "rhoas_kafkas" "all" {
 }
 
-output "psl" {
-  value = module.psl.coffee
+data "rhoas_service_accounts" "all" {
+}
+
+output "all_kafkas" {
+  value = data.rhoas_kafkas.all.kafkas
 }
