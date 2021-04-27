@@ -2,9 +2,11 @@ package cloudproviders
 
 import (
 	"context"
-	"github.com/bf2fc6cc711aee1a0c2a/cli/pkg/connection"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/redhat-developer/app-services-cli/pkg/connection"
+	"io/ioutil"
+	"log"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 	"strconv"
 	"time"
@@ -54,9 +56,13 @@ func dataSourceCloudProvidersRead(ctx context.Context, d *schema.ResourceData, m
 
 	api := c.API().Kafka()
 
-	data, _, apiErr := api.ListCloudProviders(ctx).Execute()
-	if apiErr.Error() != "" {
-		return diag.Errorf("%s%s", apiErr.Error(), string(apiErr.Body()))
+	data, resp, err := api.ListCloudProviders(ctx).Execute()
+	if err != nil {
+		bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
+		if ioErr != nil {
+			log.Fatal(ioErr)
+		}
+		return diag.Errorf("%s%s", err.Error(), string(bodyBytes))
 	}
 
 	obj, err := utils.AsMap(data)

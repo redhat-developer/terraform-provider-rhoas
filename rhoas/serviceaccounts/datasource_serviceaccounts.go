@@ -2,9 +2,11 @@ package serviceaccounts
 
 import (
 	"context"
-	"github.com/bf2fc6cc711aee1a0c2a/cli/pkg/connection"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"io/ioutil"
+	"log"
+	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/cli/connection"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 	"strconv"
 	"time"
@@ -43,6 +45,14 @@ func DataSourceServiceAccounts() *schema.Resource {
 							Type: schema.TypeString,
 							Computed: true,
 						},
+						"owner": &schema.Schema{
+							Type: schema.TypeString,
+							Computed: true,
+						},
+						"created_at": &schema.Schema{
+							Type: schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -58,14 +68,18 @@ func dataSourceKafkasRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 	api := c.API().Kafka()
 
-	data, _, apiErr := api.ListServiceAccounts(ctx).Execute()
-	if apiErr.Error() != "" {
-		return diag.Errorf("%s%s", apiErr.Error(), string(apiErr.Body()))
+	data, resp, err := api.ListServiceAccounts(ctx).Execute()
+	if err != nil {
+		bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
+		if ioErr != nil {
+			log.Fatal(ioErr)
+		}
+		return diag.Errorf("%s%s", err.Error(), string(bodyBytes))
 	}
 
 	obj, err := utils.AsMap(data)
 	if err != nil {
-		return diag.FromErr(apiErr)
+		return diag.FromErr(err)
 	}
 
 	var raw []map[string]interface{}
@@ -75,7 +89,7 @@ func dataSourceKafkasRead(ctx context.Context, d *schema.ResourceData, m interfa
 		raw = append(raw, item.(map[string]interface{}))
 	}
 
-	items := fixClientIDAndClientSecret(raw)
+	items := fixClientIDAndClientSecret(raw, nil)
 
 	if err := d.Set("service_accounts", items); err != nil {
 		return diag.FromErr(err)

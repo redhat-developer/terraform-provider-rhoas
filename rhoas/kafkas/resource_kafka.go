@@ -2,21 +2,22 @@ package kafkas
 
 import (
 	"context"
-	kasclient "github.com/bf2fc6cc711aee1a0c2a/cli/pkg/api/kas/client"
-	"github.com/bf2fc6cc711aee1a0c2a/cli/pkg/connection"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
+	kasclient "github.com/redhat-developer/app-services-cli/pkg/api/kas/client"
+	"io/ioutil"
+	"log"
+	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/cli/connection"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
-	"strconv"
 	"time"
 )
 
 func ResourceKafka() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: kafkaCreate,
-		ReadContext: kafkaRead,
+		ReadContext:   kafkaRead,
 		DeleteContext: kafkaDelete,
 		Schema: map[string]*schema.Schema{
 			"kafka": &schema.Schema{
@@ -29,19 +30,19 @@ func ResourceKafka() *schema.Resource {
 						"cloud_provider": &schema.Schema{
 							Type:     schema.TypeString,
 							Optional: true,
-							Default: "aws",
+							Default:  "aws",
 							ForceNew: true,
 						},
 						"multi_az": &schema.Schema{
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default: true,
+							Default:  true,
 							ForceNew: true,
 						},
 						"region": &schema.Schema{
 							Type:     schema.TypeString,
 							Optional: true,
-							Default: "us-east-1",
+							Default:  "us-east-1",
 							ForceNew: true,
 						},
 						"name": &schema.Schema{
@@ -49,34 +50,54 @@ func ResourceKafka() *schema.Resource {
 							Required: true,
 							ForceNew: true,
 						},
+						"display_name": &schema.Schema{
+							Type: schema.TypeString,
+							Computed: true,
+						},
+						"href": &schema.Schema{
+							Type: schema.TypeString,
+							Computed: true,
+						},
+						"status": &schema.Schema{
+							Type: schema.TypeString,
+							Computed: true,
+						},
+						"owner": &schema.Schema{
+							Type: schema.TypeString,
+							Computed: true,
+						},
+						"bootstrap_server": &schema.Schema{
+							Type: schema.TypeString,
+							Computed: true,
+						},
+						"created_at": &schema.Schema{
+							Type: schema.TypeString,
+							Computed: true,
+						},
+						"updated_at": &schema.Schema{
+							Type: schema.TypeString,
+							Computed: true,
+						},
+						"id": &schema.Schema{
+							Type: schema.TypeString,
+							Computed: true,
+						},
+						"kind": &schema.Schema{
+							Type: schema.TypeString,
+							Computed: true,
+						},
+						"version": &schema.Schema{
+							Type: schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create:  schema.DefaultTimeout(20 * time.Minute),
+			Create: schema.DefaultTimeout(20 * time.Minute),
 		},
 	}
-}
-
-func filter (items []map[string]interface{}, fields []string) []map[string]interface{} {
-	answer := make([]map[string]interface{}, 0)
-	for _, item := range items {
-		filtered := make(map[string]interface{})
-		for k, v := range item {
-			keep := false
-			for _, f := range fields {
-				if f == k {
-					keep = true
-				}
-			}
-			if keep {
-				filtered[k] = v
-			}
-		}
-		answer = append(answer, filtered)
-	}
-	return answer
 }
 
 func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -87,33 +108,37 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 
 	api := c.API().Kafka()
 
-	_, _, apiErr := api.DeleteKafkaById(ctx, d.Id()).Async(true).Execute()
-	if apiErr.Error() == "404 " {
+	apiErr, _, err := api.DeleteKafkaById(ctx, d.Id()).Async(true).Execute()
+	if err != nil && err.Error() == "404 " {
 		// the resource is deleted already
 		d.SetId("")
 		return diags
 	}
-	if apiErr.Error() != "" {
-		return diag.Errorf("%s%s", apiErr.Error(), string(apiErr.Body()))
+	if err != nil {
+		return diag.Errorf("%s%s", err.Error(), apiErr.Reason)
 	}
 
 	deleteStateConf := &resource.StateChangeConf{
-		Delay:                     5 * time.Second,
-		Pending:                   []string{
+		Delay: 5 * time.Second,
+		Pending: []string{
 			"deprovision",
 		},
-		Refresh:                   func() (interface{}, string, error) {
-			data, _, apiErr := api.GetKafkaById(ctx, d.Id()).Execute()
-			if apiErr.Error() == "404 " {
-				return data, "404",nil
+		Refresh: func() (interface{}, string, error) {
+			data, resp, err := api.GetKafkaById(ctx, d.Id()).Execute()
+			if err != nil && err.Error() == "404 " {
+				return data, "404", nil
 			}
-			if apiErr.Error() != "" {
-				return nil, "", errors.Errorf("%s%s", apiErr.Error(), string(apiErr.Body()))
+			if err != nil {
+				bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
+				if ioErr != nil {
+					log.Fatal(ioErr)
+				}
+				return nil, "", errors.Errorf("%s%s", err.Error(), string(bodyBytes))
 			}
 			return data, *data.Status, nil
 		},
-		Target:                    []string{
-			"404",
+		Target: []string{
+			"deleted",
 		},
 		Timeout:                   d.Timeout(schema.TimeoutCreate),
 		MinTimeout:                5 * time.Second,
@@ -121,7 +146,7 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		ContinuousTargetOccurence: 0,
 	}
 
-	_, err := deleteStateConf.WaitForStateContext(ctx)
+	_, err = deleteStateConf.WaitForStateContext(ctx)
 	if err != nil {
 		return diag.FromErr(errors.Wrapf(err, "Error waiting for example instance (%s) to be created: %s", d.Id()))
 	}
@@ -140,13 +165,17 @@ func kafkaRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 
 	var raw []map[string]interface{}
 
-	data, _, apiErr := api.GetKafkaById(ctx, d.Id()).Execute()
-	if apiErr.Error() == "404 " {
+	data, resp, err := api.GetKafkaById(ctx, d.Id()).Execute()
+	if err != nil && err.Error() == "404 Not Found" {
 		d.SetId("")
 		return diags
 	}
-	if apiErr.Error() != "" {
-		return diag.Errorf("%s%s", apiErr.Error(), string(apiErr.Body()))
+	if err != nil {
+		bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
+		if ioErr != nil {
+			log.Fatal(ioErr)
+		}
+		return diag.Errorf("%s %s", err.Error(), string(bodyBytes))
 	}
 	obj, err := utils.AsMap(data)
 	if err != nil {
@@ -156,28 +185,12 @@ func kafkaRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 
 	items := fixBootstrapServerHosts(raw)
 	if err != nil {
-		diag.FromErr(err);
+		diag.FromErr(err)
 	}
-	err = applyRead(items, d)
-	if err != nil {
-		diag.FromErr(err);
+	if err := d.Set("kafka", items); err != nil {
+		return diag.FromErr(err)
 	}
-
 	return diags
-}
-
-func applyRead(items []map[string]interface{}, d *schema.ResourceData) error {
-	items = filter(items, []string{"cloud_provider", "multi_az", "region","name"})
-
-
-
-	if err := d.Set("kafkas", items); err != nil {
-		return err
-	}
-
-	// always run
-	d.SetId(strconv.FormatInt(time.Now().Unix(), 10))
-	return nil
 }
 
 func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -208,10 +221,14 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		})
 	}
 
-	kr,_, apiErr := api.CreateKafka(ctx).Async(true).KafkaRequestPayload(payload[0]).Execute()
+	kr, resp, err := api.CreateKafka(ctx).Async(true).KafkaRequestPayload(payload[0]).Execute()
 
-	if apiErr.Error() != "" {
-		return diag.Errorf("%s%s", apiErr.Error(), string(apiErr.Body()))
+	if err != nil {
+		bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
+		if ioErr != nil {
+			log.Fatal(ioErr)
+		}
+		return diag.Errorf("%s%s", err.Error(), string(bodyBytes))
 	}
 
 	if kr.Id == nil {
@@ -221,22 +238,26 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	d.SetId(*kr.Id)
 
 	createStateConf := &resource.StateChangeConf{
-		Delay:                     5 * time.Second,
-		Pending:                   []string{
+		Delay: 5 * time.Second,
+		Pending: []string{
 			"accepted",
 			"preparing",
 			"provisioning",
 		},
-		Refresh:                   func() (interface{}, string, error) {
+		Refresh: func() (interface{}, string, error) {
 			c := m.(*connection.KeycloakConnection)
 
 			api := c.API().Kafka()
 
 			var raw []map[string]interface{}
 
-			data, _, apiErr := api.GetKafkaById(ctx, *kr.Id).Execute()
-			if apiErr.Error() != "" {
-				return nil, "", errors.Errorf("%s%s", apiErr.Error(), string(apiErr.Body()))
+			data, resp, err := api.GetKafkaById(ctx, *kr.Id).Execute()
+			if err != nil {
+				bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
+				if ioErr != nil {
+					log.Fatal(ioErr)
+				}
+				return nil, "", errors.Errorf("%s%s", err.Error(), string(bodyBytes))
 			}
 			obj, err := utils.AsMap(data)
 			if err != nil {
@@ -245,10 +266,9 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 			raw = []map[string]interface{}{obj}
 
 			items := fixBootstrapServerHosts(raw)
-			filtered := filter(items, []string{"cloud_provider", "multi_az", "region","name"})
-			return filtered, *data.Status, nil
+			return items, *data.Status, nil
 		},
-		Target:                    []string{
+		Target: []string{
 			"ready",
 		},
 		Timeout:                   d.Timeout(schema.TimeoutCreate),
@@ -259,11 +279,13 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 
 	data, err := createStateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return diag.FromErr(errors.Wrapf(err, "Error waiting for example instance (%s) to be created: %s", d.Id()))
+		return diag.FromErr(errors.Wrapf(err, "Error waiting for instance (%s) to be created", d.Id()))
 	}
-	err = applyRead(data.([]map[string]interface{}), d)
+	if err := d.Set("kafka", data.([]map[string]interface{})); err != nil {
+		return diag.FromErr(err)
+	}
 	if err != nil {
-		diag.FromErr(err);
+		diag.FromErr(err)
 	}
 	return diags
 }

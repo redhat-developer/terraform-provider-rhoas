@@ -30,6 +30,9 @@ bin
 # Local .terraform directories
 **/.terraform/*
 
+# .terraform.lock.hcl files
+**/.terraform.lock.hcl
+
 # .tfstate files
 *.tfstate
 *.tfstate.*
@@ -62,3 +65,6 @@ override.tf.json
 .terraformrc
 terraform.rc
 terraform
+
+# IDEs
+.idea/*

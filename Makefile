@@ -1,6 +1,6 @@
 TEST?=$$(go list ./... | grep -v 'vendor')
-HOSTNAME=redhat.com
-NAMESPACE=cloud
+HOSTNAME=registry.terraform.io
+NAMESPACE=pmuir
 NAME=rhoas
 BINARY=terraform-provider-rhoas
 VERSION=0.1

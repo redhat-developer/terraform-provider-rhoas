@@ -2,15 +2,14 @@ package serviceaccounts
 
 import (
 	"context"
-	"fmt"
-	kasclient "github.com/bf2fc6cc711aee1a0c2a/cli/pkg/api/kas/client"
-	"github.com/bf2fc6cc711aee1a0c2a/cli/pkg/connection"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
+	kasclient "github.com/redhat-developer/app-services-cli/pkg/api/kas/client"
 	"io/ioutil"
+	"log"
+	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/cli/connection"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
-	"strconv"
 	"time"
 )
 
@@ -30,7 +29,7 @@ func ResourceServiceAccount() *schema.Resource {
 						"description": &schema.Schema{
 							Type:     schema.TypeString,
 							Optional: true,
-							Default: "",
+							Default:  "",
 							ForceNew: true,
 						},
 						"name": &schema.Schema{
@@ -38,12 +37,24 @@ func ResourceServiceAccount() *schema.Resource {
 							Required: true,
 							ForceNew: true,
 						},
+						"client_id": &schema.Schema{
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"owner": &schema.Schema{
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"client_secret": &schema.Schema{
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
 		},
 		Timeouts: &schema.ResourceTimeout{
-			Create:  schema.DefaultTimeout(20 * time.Minute),
+			Create: schema.DefaultTimeout(20 * time.Minute),
 		},
 	}
 }
@@ -56,14 +67,18 @@ func serviceAccountDelete(ctx context.Context, d *schema.ResourceData, m interfa
 
 	api := c.API().Kafka()
 
-	_, _, apiErr := api.DeleteServiceAccount(ctx, d.Id()).Execute()
-	if apiErr.Error() == "404 " {
+	_, resp, err := api.DeleteServiceAccount(ctx, d.Id()).Execute()
+	if err != nil && err.Error() == "404 " {
 		// the resource is deleted already
 		d.SetId("")
 		return diags
 	}
-	if apiErr.Error() != "" {
-		return diag.Errorf("%s%s", apiErr.Error(), string(apiErr.Body()))
+	if err != nil {
+		bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
+		if ioErr != nil {
+			log.Fatal(ioErr)
+		}
+		return diag.Errorf("%s%s", err.Error(), string(bodyBytes))
 	}
 
 	d.SetId("")
@@ -80,33 +95,33 @@ func serviceAccountRead(ctx context.Context, d *schema.ResourceData, m interface
 
 	var raw []map[string]interface{}
 
-	data, resp, apiErr := api.ListServiceAccounts(ctx).Execute()
-	if apiErr.Error() != "" {
-		return diag.Errorf("%s%s", apiErr.Error(), string(apiErr.Body()))
-	}
-
-	var serviceAccount *kasclient.ServiceAccountListItem
-
-	body, _ := ioutil.ReadAll(resp.Body)
-
-	diags = append(diags, diag.Diagnostic{
-		Severity:      diag.Warning,
-		Summary:       fmt.Sprintf("id: %s; Response: +%s", d.Id(), body),
-		Detail:        "",
-		AttributePath: nil,
-	})
-
-	// Find the service account as we don't have a get for it
-	for _, sa := range *data.Items {
-		if *sa.Id == d.Id() {
-			serviceAccount = &sa
+	// Store the existing client id
+	existingServiceAccounts := d.Get("service_account")
+	var existingClientSecret *string
+	if existingServiceAccounts != nil {
+		d := existingServiceAccounts.([]interface{})
+		if len(d) == 1 {
+			e := d[0].(map[string]interface{})["client_secret"]
+			if e != nil {
+				f := e.(string)
+				existingClientSecret = &f
+			}
 		}
 	}
 
-	if serviceAccount == nil {
-		// the service account doesn't exist any more
+	serviceAccount, resp, err := api.GetServiceAccountById(ctx, d.Id()).Execute()
+
+	if err != nil && err.Error() == "404 Not Found" {
 		d.SetId("")
 		return diags
+	}
+
+	if err != nil {
+		bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
+		if ioErr != nil {
+			log.Fatal(ioErr)
+		}
+		return diag.Errorf("%s%s", err.Error(), string(bodyBytes))
 	}
 
 	obj, err := utils.AsMap(serviceAccount)
@@ -115,25 +130,24 @@ func serviceAccountRead(ctx context.Context, d *schema.ResourceData, m interface
 	}
 	raw = []map[string]interface{}{obj}
 
-	items := fixClientIDAndClientSecret(raw)
+	items := fixClientIDAndClientSecret(raw, existingClientSecret)
 	if err != nil {
-		diag.FromErr(err);
+		return diag.FromErr(err)
 	}
 	err = applyRead(items, d)
 	if err != nil {
-		diag.FromErr(err);
+		return diag.FromErr(err)
 	}
 
 	return diags
 }
 
 func applyRead(items []map[string]interface{}, d *schema.ResourceData) error {
-	if err := d.Set("service_account", items); err != nil {
+	filter := []string{"name", "description", "client_id", "owner", "client_secret"}
+	filtered := utils.Filter(items, filter)
+	if err := d.Set("service_account", filtered); err != nil {
 		return err
 	}
-
-	// always run
-	d.SetId(strconv.FormatInt(time.Now().Unix(), 10))
 	return nil
 }
 
@@ -157,24 +171,23 @@ func serviceAccountCreate(ctx context.Context, d *schema.ResourceData, m interfa
 
 		payload = append(payload, kasclient.ServiceAccountRequest{
 			Description: &description,
-			Name:          name,
+			Name:        name,
 		})
 	}
 
-	srr,resp, apiErr := api.CreateServiceAccount(ctx).ServiceAccountRequest(payload[0]).Execute()
+	srr, resp, err := api.CreateServiceAccount(ctx).ServiceAccountRequest(payload[0]).Execute()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	_, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	diags = append(diags, diag.Diagnostic{
-		Severity: diag.Warning,
-		Summary: resp.Status,
-		Detail: string(body),
-	})
-	if apiErr.Error() != "" {
-		return diag.Errorf("%s%s", apiErr.Error(), string(apiErr.Body()))
+	if err != nil {
+		bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
+		if ioErr != nil {
+			log.Fatal(ioErr)
+		}
+		return diag.Errorf("%s%s", err.Error(), string(bodyBytes))
 	}
 
 	if srr.Id == nil {
@@ -183,6 +196,21 @@ func serviceAccountCreate(ctx context.Context, d *schema.ResourceData, m interfa
 
 	d.SetId(*srr.Id)
 
-	diags = append(diags, serviceAccountRead(ctx, d, m)...)
+	obj, err := utils.AsMap(srr)
+	if err != nil {
+		return diag.FromErr(errors.WithStack(err))
+	}
+	raw := []map[string]interface{}{obj}
+
+	fixed := fixClientIDAndClientSecret(raw, nil)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = applyRead(fixed, d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	return diags
 }

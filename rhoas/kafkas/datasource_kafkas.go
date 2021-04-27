@@ -2,10 +2,12 @@ package kafkas
 
 import (
 	"context"
-	"github.com/bf2fc6cc711aee1a0c2a/cli/pkg/connection"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
+	"io/ioutil"
+	"log"
+	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/cli/connection"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 	"strconv"
 	"time"
@@ -53,7 +55,7 @@ func DataSourceKafkas() *schema.Resource {
 							Type: schema.TypeString,
 							Computed: true,
 						},
-						"bootstrap_server_host": &schema.Schema{
+						"bootstrap_server": &schema.Schema{
 							Type: schema.TypeString,
 							Computed: true,
 						},
@@ -74,6 +76,10 @@ func DataSourceKafkas() *schema.Resource {
 							Computed: true,
 						},
 						"name": &schema.Schema{
+							Type: schema.TypeString,
+							Computed: true,
+						},
+						"version": &schema.Schema{
 							Type: schema.TypeString,
 							Computed: true,
 						},
@@ -98,9 +104,13 @@ func dataSourceKafkasRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 	id := d.Get("id").(string)
 
-	data, _, apiErr := api.ListKafkas(ctx).Execute()
-	if apiErr.Error() != "" {
-		return diag.Errorf("%s%s", apiErr.Error(), string(apiErr.Body()))
+	data, resp, err := api.ListKafkas(ctx).Execute()
+	if err != nil {
+		bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
+		if ioErr != nil {
+			log.Fatal(ioErr)
+		}
+		return diag.Errorf("%s%s", err.Error(), string(bodyBytes))
 	}
 	obj, err := utils.AsMap(data)
 	if err != nil {
