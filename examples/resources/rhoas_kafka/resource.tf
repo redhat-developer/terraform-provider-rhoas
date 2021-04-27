@@ -1,7 +1,6 @@
 terraform {
   required_providers {
     rhoas = {
-      version = "0.1"
       source  = "pmuir/rhoas"
     }
   }

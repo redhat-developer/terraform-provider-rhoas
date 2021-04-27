@@ -16,6 +16,7 @@ import (
 
 func ResourceKafka() *schema.Resource {
 	return &schema.Resource{
+		Description: "`rhoas_kafka` manages a Kafka instance in Red Hat OpenShift Streams for Apache Kafka.",
 		CreateContext: kafkaCreate,
 		ReadContext:   kafkaRead,
 		DeleteContext: kafkaDelete,
@@ -28,65 +29,74 @@ func ResourceKafka() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"cloud_provider": &schema.Schema{
+							Description: "The cloud provider to use. A list of available cloud providers can be obtained using `data.rhoas_cloud_providers`.",
 							Type:     schema.TypeString,
 							Optional: true,
 							Default:  "aws",
 							ForceNew: true,
 						},
 						"multi_az": &schema.Schema{
+							Description: "Whether the Kafka instance should be highly available by supporting multi-az",
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  true,
 							ForceNew: true,
 						},
 						"region": &schema.Schema{
+							Description: "The region to use. A list of available regions can be obtained using `data.rhoas_cloud_providers_regions`.",
 							Type:     schema.TypeString,
 							Optional: true,
 							Default:  "us-east-1",
 							ForceNew: true,
 						},
 						"name": &schema.Schema{
+							Description: "The name of the Kafka instance",
 							Type:     schema.TypeString,
 							Required: true,
 							ForceNew: true,
 						},
-						"display_name": &schema.Schema{
-							Type: schema.TypeString,
-							Computed: true,
-						},
 						"href": &schema.Schema{
 							Type: schema.TypeString,
 							Computed: true,
+							Description: "The path to the Kafka instance in the REST API",
 						},
 						"status": &schema.Schema{
 							Type: schema.TypeString,
 							Computed: true,
+							Description: "The status of the Kafka instance",
 						},
 						"owner": &schema.Schema{
 							Type: schema.TypeString,
 							Computed: true,
+							Description: "The username of the Red Hat account that owns the Kafka instance",
 						},
 						"bootstrap_server": &schema.Schema{
+							Description: "The bootstrap server (host:port)",
 							Type: schema.TypeString,
 							Computed: true,
 						},
 						"created_at": &schema.Schema{
+							Description: "The RFC3339 date and time at which the Kafka instance was created",
 							Type: schema.TypeString,
 							Computed: true,
 						},
 						"updated_at": &schema.Schema{
+							Description: "The RFC3339 date and time at which the Kafka instance was last updated",
 							Type: schema.TypeString,
 							Computed: true,
 						},
 						"id": &schema.Schema{
+							Description: "The unique identifier for the Kafka instance",
 							Type: schema.TypeString,
 							Computed: true,
 						},
 						"kind": &schema.Schema{
 							Type: schema.TypeString,
 							Computed: true,
+							Description: "The kind of resource in the API",
 						},
 						"version": &schema.Schema{
+							Description: "The version of Kafka the instance is using",
 							Type: schema.TypeString,
 							Computed: true,
 						},

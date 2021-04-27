@@ -14,6 +14,7 @@ import (
 
 func DataSourceCloudProviders() *schema.Resource {
 	return &schema.Resource{
+		Description: "`rhoas_cloud_providers` provides a list of the cloud providers available for Red Hat OpenShift Streams for Apache Kafka.",
 		ReadContext: dataSourceCloudProvidersRead,
 		Schema: map[string]*schema.Schema{
 			"cloud_providers": &schema.Schema{

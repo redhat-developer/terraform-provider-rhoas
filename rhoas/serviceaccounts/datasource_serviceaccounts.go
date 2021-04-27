@@ -14,6 +14,7 @@ import (
 
 func DataSourceServiceAccounts() *schema.Resource {
 	return &schema.Resource{
+		Description: "`rhoas_service_accounts` provides a list of the service accounts accessible to your organization in Red Hat OpenShift Streams for Apache Kafka.",
 		ReadContext: dataSourceKafkasRead,
 		Schema: map[string]*schema.Schema{
 			"service_accounts": &schema.Schema{
@@ -24,6 +25,7 @@ func DataSourceServiceAccounts() *schema.Resource {
 						"client_id": &schema.Schema{
 							Type: schema.TypeString,
 							Computed: true,
+							Description: "The client id associated with the service account",
 						},
 						"href": &schema.Schema{
 							Type: schema.TypeString,
@@ -32,26 +34,32 @@ func DataSourceServiceAccounts() *schema.Resource {
 						"description": &schema.Schema{
 							Type: schema.TypeString,
 							Computed: true,
+							Description: "A description of the service account",
 						},
 						"id": &schema.Schema{
+							Description: "The unique identifier for the service account",
 							Type: schema.TypeString,
 							Computed: true,
 						},
 						"kind": &schema.Schema{
 							Type: schema.TypeString,
 							Computed: true,
+							Description: "The kind of resource in the API",
 						},
 						"name": &schema.Schema{
+							Description: "The name of the service account",
 							Type: schema.TypeString,
 							Computed: true,
 						},
 						"owner": &schema.Schema{
 							Type: schema.TypeString,
 							Computed: true,
+							Description: "The username of the Red Hat account that owns the service account",
 						},
 						"created_at": &schema.Schema{
 							Type: schema.TypeString,
 							Computed: true,
+							Description: "The RFC3339 date and time at which the service account was created",
 						},
 					},
 				},

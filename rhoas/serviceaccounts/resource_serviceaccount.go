@@ -15,6 +15,7 @@ import (
 
 func ResourceServiceAccount() *schema.Resource {
 	return &schema.Resource{
+		Description: "`rhoas_service_account` manages a service account in Red Hat OpenShift Streams for Apache Kafka.",
 		CreateContext: serviceAccountCreate,
 		ReadContext:   serviceAccountRead,
 		DeleteContext: serviceAccountDelete,
@@ -27,27 +28,32 @@ func ResourceServiceAccount() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"description": &schema.Schema{
+							Description: "A description of the service account",
 							Type:     schema.TypeString,
 							Optional: true,
 							Default:  "",
 							ForceNew: true,
 						},
 						"name": &schema.Schema{
+							Description: "The name of the service account",
 							Type:     schema.TypeString,
 							Required: true,
 							ForceNew: true,
 						},
 						"client_id": &schema.Schema{
+							Description: "The client id associated with the service account",
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"owner": &schema.Schema{
 							Type:     schema.TypeString,
 							Computed: true,
+							Description: "The username of the Red Hat account that owns the service account",
 						},
 						"client_secret": &schema.Schema{
 							Type:     schema.TypeString,
 							Computed: true,
+							Description: "The client secret associated with the service account. It must be stored by the client as the server will not return it after creation",
 						},
 					},
 				},

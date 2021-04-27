@@ -1,3 +1,15 @@
+---
+subcategory: ""
+page_title: "Create a Kafka Topic - RHOAS provider"
+description: |-
+    An example of creating a new Kafka instance and then creating a topic
+---
+
+# Create a Topic on a new Red Hat OpenShift Streams for Apache Kafka instance
+
+To create a Kafka instance, a service account for using it, and then a topic:
+
+```terraform
 terraform {
   required_providers {
     rhoas = {
@@ -39,3 +51,4 @@ resource "kafka_topic" "prices" {
     "cleanup.policy" = "delete"
   }
 }
+```

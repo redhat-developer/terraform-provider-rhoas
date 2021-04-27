@@ -15,6 +15,7 @@ import (
 func DataSourceCloudProviderRegions() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceCloudProviderRegionsRead,
+		Description: "`rhoas_cloud_providers_regions` provides a list of the regions available for Red Hat OpenShift Streams for Apache Kafka.",
 		Schema: map[string]*schema.Schema{
 			"id": &schema.Schema{
 				Type:     schema.TypeString,
@@ -30,6 +31,7 @@ func DataSourceCloudProviderRegions() *schema.Resource {
 							Computed: true,
 						},
 						"enabled": &schema.Schema{
+							Description: "Describes whether the region is enabled",
 							Type: schema.TypeBool,
 							Computed: true,
 						},
