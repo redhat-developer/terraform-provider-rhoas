@@ -2,14 +2,15 @@ package cloudproviders
 
 import (
 	"context"
+	"io/ioutil"
+	"log"
+	"strconv"
+	"time"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/redhat-developer/app-services-cli/pkg/connection"
-	"io/ioutil"
-	"log"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
-	"strconv"
-	"time"
 )
 
 func DataSourceCloudProviderRegions() *schema.Resource {
@@ -17,30 +18,30 @@ func DataSourceCloudProviderRegions() *schema.Resource {
 		ReadContext: dataSourceCloudProviderRegionsRead,
 		Description: "`rhoas_cloud_providers_regions` provides a list of the regions available for Red Hat OpenShift Streams for Apache Kafka.",
 		Schema: map[string]*schema.Schema{
-			"id": &schema.Schema{
+			"id": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"regions": &schema.Schema{
-				Type: schema.TypeList,
+			"regions": {
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"display_name": &schema.Schema{
-							Type: schema.TypeString,
+						"display_name": {
+							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"enabled": &schema.Schema{
+						"enabled": {
 							Description: "Describes whether the region is enabled",
-							Type: schema.TypeBool,
+							Type:        schema.TypeBool,
+							Computed:    true,
+						},
+						"id": {
+							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"id": &schema.Schema{
-							Type: schema.TypeString,
-							Computed: true,
-						},
-						"kind": &schema.Schema{
-							Type: schema.TypeString,
+						"kind": {
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},

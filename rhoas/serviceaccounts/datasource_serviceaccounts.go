@@ -2,14 +2,15 @@ package serviceaccounts
 
 import (
 	"context"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"io/ioutil"
 	"log"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/cli/connection"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 	"strconv"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/cli/connection"
+	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 )
 
 func DataSourceServiceAccounts() *schema.Resource {
@@ -17,48 +18,48 @@ func DataSourceServiceAccounts() *schema.Resource {
 		Description: "`rhoas_service_accounts` provides a list of the service accounts accessible to your organization in Red Hat OpenShift Streams for Apache Kafka.",
 		ReadContext: dataSourceKafkasRead,
 		Schema: map[string]*schema.Schema{
-			"service_accounts": &schema.Schema{
-				Type: schema.TypeList,
+			"service_accounts": {
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"client_id": &schema.Schema{
-							Type: schema.TypeString,
-							Computed: true,
+						"client_id": {
+							Type:        schema.TypeString,
+							Computed:    true,
 							Description: "The client id associated with the service account",
 						},
-						"href": &schema.Schema{
-							Type: schema.TypeString,
+						"href": {
+							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"description": &schema.Schema{
-							Type: schema.TypeString,
-							Computed: true,
+						"description": {
+							Type:        schema.TypeString,
+							Computed:    true,
 							Description: "A description of the service account",
 						},
-						"id": &schema.Schema{
+						"id": {
 							Description: "The unique identifier for the service account",
-							Type: schema.TypeString,
-							Computed: true,
+							Type:        schema.TypeString,
+							Computed:    true,
 						},
-						"kind": &schema.Schema{
-							Type: schema.TypeString,
-							Computed: true,
+						"kind": {
+							Type:        schema.TypeString,
+							Computed:    true,
 							Description: "The kind of resource in the API",
 						},
-						"name": &schema.Schema{
+						"name": {
 							Description: "The name of the service account",
-							Type: schema.TypeString,
-							Computed: true,
+							Type:        schema.TypeString,
+							Computed:    true,
 						},
-						"owner": &schema.Schema{
-							Type: schema.TypeString,
-							Computed: true,
+						"owner": {
+							Type:        schema.TypeString,
+							Computed:    true,
 							Description: "The username of the Red Hat account that owns the service account",
 						},
-						"created_at": &schema.Schema{
-							Type: schema.TypeString,
-							Computed: true,
+						"created_at": {
+							Type:        schema.TypeString,
+							Computed:    true,
 							Description: "The RFC3339 date and time at which the service account was created",
 						},
 					},
