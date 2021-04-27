@@ -7,9 +7,9 @@ description: |-
 
 # RHOAS Provider
 
-The RHOAS terraform provider resources to interact with Red Hat OpenShift Application Services available as part of https://cloud.redhat.com 
+The RHOAS terraform provider includes resources to interact with Red Hat OpenShift Application Services, available as part of https://cloud.redhat.com 
 
-## Supported Services 
+## Available Services 
 
 **OpenShift Streams for Apache Kafka is an cloud service for streaming data that reduces the operational cost and complexity of delivering real-time applications across hybrid-cloud environments.
 
