@@ -15,44 +15,44 @@ import (
 
 func ResourceServiceAccount() *schema.Resource {
 	return &schema.Resource{
-		Description: "`rhoas_service_account` manages a service account in Red Hat OpenShift Streams for Apache Kafka.",
+		Description:   "`rhoas_service_account` manages a service account in Red Hat OpenShift Streams for Apache Kafka.",
 		CreateContext: serviceAccountCreate,
 		ReadContext:   serviceAccountRead,
 		DeleteContext: serviceAccountDelete,
 		Schema: map[string]*schema.Schema{
-			"service_account": &schema.Schema{
+			"service_account": {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Required: true,
 				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"description": &schema.Schema{
+						"description": {
 							Description: "A description of the service account",
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  "",
-							ForceNew: true,
+							Type:        schema.TypeString,
+							Optional:    true,
+							Default:     "",
+							ForceNew:    true,
 						},
-						"name": &schema.Schema{
+						"name": {
 							Description: "The name of the service account",
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
+							Type:        schema.TypeString,
+							Required:    true,
+							ForceNew:    true,
 						},
-						"client_id": &schema.Schema{
+						"client_id": {
 							Description: "The client id associated with the service account",
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:        schema.TypeString,
+							Computed:    true,
 						},
-						"owner": &schema.Schema{
-							Type:     schema.TypeString,
-							Computed: true,
+						"owner": {
+							Type:        schema.TypeString,
+							Computed:    true,
 							Description: "The username of the Red Hat account that owns the service account",
 						},
-						"client_secret": &schema.Schema{
-							Type:     schema.TypeString,
-							Computed: true,
+						"client_secret": {
+							Type:        schema.TypeString,
+							Computed:    true,
 							Description: "The client secret associated with the service account. It must be stored by the client as the server will not return it after creation",
 						},
 					},
@@ -69,7 +69,10 @@ func serviceAccountDelete(ctx context.Context, d *schema.ResourceData, m interfa
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	c := m.(*connection.KeycloakConnection)
+	c, ok := m.(*connection.KeycloakConnection)
+	if !ok {
+		return diag.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
+	}
 
 	api := c.API().Kafka()
 
@@ -95,7 +98,10 @@ func serviceAccountRead(ctx context.Context, d *schema.ResourceData, m interface
 
 	var diags diag.Diagnostics
 
-	c := m.(*connection.KeycloakConnection)
+	c, ok := m.(*connection.KeycloakConnection)
+	if !ok {
+		return diag.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
+	}
 
 	api := c.API().Kafka()
 
@@ -105,11 +111,17 @@ func serviceAccountRead(ctx context.Context, d *schema.ResourceData, m interface
 	existingServiceAccounts := d.Get("service_account")
 	var existingClientSecret *string
 	if existingServiceAccounts != nil {
-		d := existingServiceAccounts.([]interface{})
+		d, ok := existingServiceAccounts.([]interface{})
+		if !ok {
+			return diag.Errorf("unable to cast %v to []interface{}", existingServiceAccounts)
+		}
 		if len(d) == 1 {
 			e := d[0].(map[string]interface{})["client_secret"]
 			if e != nil {
-				f := e.(string)
+				f, ok := e.(string)
+				if !ok {
+					return diag.Errorf("unable to cast %v to string", e)
+				}
 				existingClientSecret = &f
 			}
 		}
@@ -161,19 +173,35 @@ func serviceAccountCreate(ctx context.Context, d *schema.ResourceData, m interfa
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	c := m.(*connection.KeycloakConnection)
+	c, ok := m.(*connection.KeycloakConnection)
+	if !ok {
+		return diag.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
+	}
 
 	api := c.API().Kafka()
 
-	items := d.Get("service_account").([]interface{})
+	val := d.Get("service_account")
+	items, ok := val.([]interface{})
+	if !ok {
+		return diag.Errorf("unable to cast %v to []interface{}", val)
+	}
 
 	payload := make([]kasclient.ServiceAccountRequest, 0)
 
 	for _, item := range items {
-		kafka := item.(map[string]interface{})
+		kafka, ok := item.(map[string]interface{})
+		if !ok {
+			return diag.Errorf("unable to cast %v to map[string]interface{}", item)
+		}
 
-		description := kafka["description"].(string)
-		name := kafka["name"].(string)
+		description, ok := kafka["description"].(string)
+		if !ok {
+			return diag.Errorf("unable to cast %v to string", kafka["description"])
+		}
+		name, ok := kafka["name"].(string)
+		if !ok {
+			return diag.Errorf("unable to cast %v to string", kafka["name"])
+		}
 
 		payload = append(payload, kasclient.ServiceAccountRequest{
 			Description: &description,
@@ -182,6 +210,9 @@ func serviceAccountCreate(ctx context.Context, d *schema.ResourceData, m interfa
 	}
 
 	srr, resp, err := api.CreateServiceAccount(ctx).ServiceAccountRequest(payload[0]).Execute()
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	_, err = ioutil.ReadAll(resp.Body)
 	if err != nil {

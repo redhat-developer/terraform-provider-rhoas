@@ -14,8 +14,7 @@ build:
 
 .PHONY: docs
 docs:
-	go mod download
-	echo Using tfplugindocs that needs to be manually installed from https://github.com/hashicorp/terraform-plugin-docs/releases
+	go install github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
 	tfplugindocs
 
 .PHONY: release
@@ -38,9 +37,11 @@ install: build
 	mkdir -p ~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
 	mv ${BINARY} ~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
 
-.PHONY: fmt
-fmt:
-	go fmt
+.PHONY: format
+format:
+	@go mod tidy
+	@gofmt -s -w `find . -type f -name '*.go'`
+
 
 .PHONY: test
 test:
@@ -50,5 +51,9 @@ test:
 .PHONY: testacc
 testacc:
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m
+
+.PHONY: lint
+lint:
+	golangci-lint run
 
 

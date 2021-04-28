@@ -14,96 +14,98 @@ import (
 	"time"
 )
 
-func ResourceKafka() *schema.Resource {
-	return &schema.Resource{
-		Description: "`rhoas_kafka` manages a Kafka instance in Red Hat OpenShift Streams for Apache Kafka.",
-		CreateContext: kafkaCreate,
-		ReadContext:   kafkaRead,
-		DeleteContext: kafkaDelete,
-		Schema: map[string]*schema.Schema{
-			"kafka": &schema.Schema{
-				Type:     schema.TypeList,
-				MaxItems: 1,
-				Required: true,
-				ForceNew: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"cloud_provider": &schema.Schema{
-							Description: "The cloud provider to use. A list of available cloud providers can be obtained using `data.rhoas_cloud_providers`.",
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  "aws",
-							ForceNew: true,
-						},
-						"multi_az": &schema.Schema{
-							Description: "Whether the Kafka instance should be highly available by supporting multi-az",
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  true,
-							ForceNew: true,
-						},
-						"region": &schema.Schema{
-							Description: "The region to use. A list of available regions can be obtained using `data.rhoas_cloud_providers_regions`.",
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  "us-east-1",
-							ForceNew: true,
-						},
-						"name": &schema.Schema{
-							Description: "The name of the Kafka instance",
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-						},
-						"href": &schema.Schema{
-							Type: schema.TypeString,
-							Computed: true,
-							Description: "The path to the Kafka instance in the REST API",
-						},
-						"status": &schema.Schema{
-							Type: schema.TypeString,
-							Computed: true,
-							Description: "The status of the Kafka instance",
-						},
-						"owner": &schema.Schema{
-							Type: schema.TypeString,
-							Computed: true,
-							Description: "The username of the Red Hat account that owns the Kafka instance",
-						},
-						"bootstrap_server": &schema.Schema{
-							Description: "The bootstrap server (host:port)",
-							Type: schema.TypeString,
-							Computed: true,
-						},
-						"created_at": &schema.Schema{
-							Description: "The RFC3339 date and time at which the Kafka instance was created",
-							Type: schema.TypeString,
-							Computed: true,
-						},
-						"updated_at": &schema.Schema{
-							Description: "The RFC3339 date and time at which the Kafka instance was last updated",
-							Type: schema.TypeString,
-							Computed: true,
-						},
-						"id": &schema.Schema{
-							Description: "The unique identifier for the Kafka instance",
-							Type: schema.TypeString,
-							Computed: true,
-						},
-						"kind": &schema.Schema{
-							Type: schema.TypeString,
-							Computed: true,
-							Description: "The kind of resource in the API",
-						},
-						"version": &schema.Schema{
-							Description: "The version of Kafka the instance is using",
-							Type: schema.TypeString,
-							Computed: true,
-						},
-					},
+var kafkaResourceSchema = map[string]*schema.Schema{
+	"kafka": {
+		Type:     schema.TypeList,
+		MaxItems: 1,
+		Required: true,
+		ForceNew: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"cloud_provider": {
+					Description: "The cloud provider to use. A list of available cloud providers can be obtained using `data.rhoas_cloud_providers`.",
+					Type:        schema.TypeString,
+					Optional:    true,
+					Default:     "aws",
+					ForceNew:    true,
+				},
+				"multi_az": {
+					Description: "Whether the Kafka instance should be highly available by supporting multi-az",
+					Type:        schema.TypeBool,
+					Optional:    true,
+					Default:     true,
+					ForceNew:    true,
+				},
+				"region": {
+					Description: "The region to use. A list of available regions can be obtained using `data.rhoas_cloud_providers_regions`.",
+					Type:        schema.TypeString,
+					Optional:    true,
+					Default:     "us-east-1",
+					ForceNew:    true,
+				},
+				"name": {
+					Description: "The name of the Kafka instance",
+					Type:        schema.TypeString,
+					Required:    true,
+					ForceNew:    true,
+				},
+				"href": {
+					Type:        schema.TypeString,
+					Computed:    true,
+					Description: "The path to the Kafka instance in the REST API",
+				},
+				"status": {
+					Type:        schema.TypeString,
+					Computed:    true,
+					Description: "The status of the Kafka instance",
+				},
+				"owner": {
+					Type:        schema.TypeString,
+					Computed:    true,
+					Description: "The username of the Red Hat account that owns the Kafka instance",
+				},
+				"bootstrap_server": {
+					Description: "The bootstrap server (host:port)",
+					Type:        schema.TypeString,
+					Computed:    true,
+				},
+				"created_at": {
+					Description: "The RFC3339 date and time at which the Kafka instance was created",
+					Type:        schema.TypeString,
+					Computed:    true,
+				},
+				"updated_at": {
+					Description: "The RFC3339 date and time at which the Kafka instance was last updated",
+					Type:        schema.TypeString,
+					Computed:    true,
+				},
+				"id": {
+					Description: "The unique identifier for the Kafka instance",
+					Type:        schema.TypeString,
+					Computed:    true,
+				},
+				"kind": {
+					Type:        schema.TypeString,
+					Computed:    true,
+					Description: "The kind of resource in the API",
+				},
+				"version": {
+					Description: "The version of Kafka the instance is using",
+					Type:        schema.TypeString,
+					Computed:    true,
 				},
 			},
 		},
+	},
+}
+
+func ResourceKafka() *schema.Resource {
+	return &schema.Resource{
+		Description:   "`rhoas_kafka` manages a Kafka instance in Red Hat OpenShift Streams for Apache Kafka.",
+		CreateContext: kafkaCreate,
+		ReadContext:   kafkaRead,
+		DeleteContext: kafkaDelete,
+		Schema:        kafkaResourceSchema,
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(20 * time.Minute),
 		},
@@ -114,7 +116,10 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	c := m.(*connection.KeycloakConnection)
+	c, ok := m.(*connection.KeycloakConnection)
+	if !ok {
+		return diag.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
+	}
 
 	api := c.API().Kafka()
 
@@ -125,7 +130,10 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		return diags
 	}
 	if err != nil {
-		return diag.Errorf("%s%s", err.Error(), apiErr.Reason)
+		if apiErr.Reason != nil {
+			return diag.Errorf("%s%s", err.Error(), *apiErr.Reason)
+		}
+		return diag.Errorf("%s", err.Error())
 	}
 
 	deleteStateConf := &resource.StateChangeConf{
@@ -134,16 +142,16 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 			"deprovision",
 		},
 		Refresh: func() (interface{}, string, error) {
-			data, resp, err := api.GetKafkaById(ctx, d.Id()).Execute()
-			if err != nil && err.Error() == "404 " {
+			data, resp, err1 := api.GetKafkaById(ctx, d.Id()).Execute()
+			if err1 != nil && err1.Error() == "404 " {
 				return data, "404", nil
 			}
-			if err != nil {
+			if err1 != nil {
 				bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
 				if ioErr != nil {
 					log.Fatal(ioErr)
 				}
-				return nil, "", errors.Errorf("%s%s", err.Error(), string(bodyBytes))
+				return nil, "", errors.Errorf("%s%s", err1.Error(), string(bodyBytes))
 			}
 			return data, *data.Status, nil
 		},
@@ -158,7 +166,7 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 
 	_, err = deleteStateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return diag.FromErr(errors.Wrapf(err, "Error waiting for example instance (%s) to be created: %s", d.Id()))
+		return diag.FromErr(errors.Wrapf(err, "Error waiting for example instance (%s) to be created", d.Id()))
 	}
 
 	d.SetId("")
@@ -169,7 +177,10 @@ func kafkaRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 
 	var diags diag.Diagnostics
 
-	c := m.(*connection.KeycloakConnection)
+	c, ok := m.(*connection.KeycloakConnection)
+	if !ok {
+		return diag.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
+	}
 
 	api := c.API().Kafka()
 
@@ -203,25 +214,31 @@ func kafkaRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 	return diags
 }
 
-func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	// Warning or errors can be collected in a slice type
-	var diags diag.Diagnostics
-
-	c := m.(*connection.KeycloakConnection)
-
-	api := c.API().Kafka()
-
-	items := d.Get("kafka").([]interface{})
-
+func createPayload(items []interface{}) ([]kasclient.KafkaRequestPayload, error) {
 	payload := make([]kasclient.KafkaRequestPayload, 0)
 
 	for _, item := range items {
-		kafka := item.(map[string]interface{})
+		kafka, ok := item.(map[string]interface{})
+		if !ok {
+			return nil, errors.Errorf("unable to cast %v to map[string]interface{}", item)
+		}
 
-		cloudProvider := kafka["cloud_provider"].(string)
-		name := kafka["name"].(string)
-		multiAz := kafka["multi_az"].(bool)
-		region := kafka["region"].(string)
+		cloudProvider, ok := kafka["cloud_provider"].(string)
+		if !ok {
+			return nil, errors.Errorf("unable to cast %v to string", kafka["cloud_provider"])
+		}
+		name, ok := kafka["name"].(string)
+		if !ok {
+			return nil, errors.Errorf("unable to cast %v to string", kafka["name"])
+		}
+		multiAz, ok := kafka["multi_az"].(bool)
+		if !ok {
+			return nil, errors.Errorf("unable to cast %v to string", kafka["multi_az"])
+		}
+		region, ok := kafka["region"].(string)
+		if !ok {
+			return nil, errors.Errorf("unable to cast %v to string", kafka["region"])
+		}
 
 		payload = append(payload, kasclient.KafkaRequestPayload{
 			CloudProvider: &cloudProvider,
@@ -229,6 +246,30 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 			Name:          name,
 			Region:        &region,
 		})
+	}
+	return payload, nil
+}
+
+func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	// Warning or errors can be collected in a slice type
+	var diags diag.Diagnostics
+
+	c, ok := m.(*connection.KeycloakConnection)
+	if !ok {
+		return diag.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
+	}
+
+	api := c.API().Kafka()
+
+	val := d.Get("kafka")
+	items, ok := val.([]interface{})
+	if !ok {
+		return diag.Errorf("unable to cast %v to []interface{}", val)
+	}
+
+	payload, err := createPayload(items)
+	if err != nil {
+		return diag.FromErr(errors.Wrapf(err, "error building create Kafka request payload for %s", d.Id()))
 	}
 
 	kr, resp, err := api.CreateKafka(ctx).Async(true).KafkaRequestPayload(payload[0]).Execute()
@@ -255,23 +296,26 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 			"provisioning",
 		},
 		Refresh: func() (interface{}, string, error) {
-			c := m.(*connection.KeycloakConnection)
+			c, ok := m.(*connection.KeycloakConnection)
+			if !ok {
+				return nil, "", errors.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
+			}
 
 			api := c.API().Kafka()
 
 			var raw []map[string]interface{}
 
-			data, resp, err := api.GetKafkaById(ctx, *kr.Id).Execute()
-			if err != nil {
+			data, resp, err1 := api.GetKafkaById(ctx, *kr.Id).Execute()
+			if err1 != nil {
 				bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
 				if ioErr != nil {
 					log.Fatal(ioErr)
 				}
-				return nil, "", errors.Errorf("%s%s", err.Error(), string(bodyBytes))
+				return nil, "", errors.Errorf("%s%s", err1.Error(), string(bodyBytes))
 			}
-			obj, err := utils.AsMap(data)
-			if err != nil {
-				return nil, "", errors.WithStack(err)
+			obj, err1 := utils.AsMap(data)
+			if err1 != nil {
+				return nil, "", errors.WithStack(err1)
 			}
 			raw = []map[string]interface{}{obj}
 
@@ -291,11 +335,8 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	if err != nil {
 		return diag.FromErr(errors.Wrapf(err, "Error waiting for instance (%s) to be created", d.Id()))
 	}
-	if err := d.Set("kafka", data.([]map[string]interface{})); err != nil {
-		return diag.FromErr(err)
-	}
-	if err != nil {
-		diag.FromErr(err)
+	if err1 := d.Set("kafka", data.([]map[string]interface{})); err1 != nil {
+		return diag.FromErr(err1)
 	}
 	return diags
 }
