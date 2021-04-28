@@ -7,14 +7,13 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/cli/auth/token"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/cli/build"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/cli/config"
 
 	"github.com/redhat-developer/app-services-cli/pkg/cmd/debug"
 
 	"github.com/Nerzal/gocloak/v7"
-
-	"github.com/redhat-developer/app-services-cli/pkg/auth/token"
 	"github.com/redhat-developer/app-services-cli/pkg/logging"
 )
 

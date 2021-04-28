@@ -68,3 +68,4 @@ terraform
 
 # IDEs
 .idea/*
+terraform-provider-rhoas
