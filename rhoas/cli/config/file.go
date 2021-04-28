@@ -79,10 +79,10 @@ func (c *File) Remove() error {
 
 // Location gets the path to the config file
 func (c *File) Location() (path string, err error) {
-	if rhoasConfig := os.Getenv("RHOASCLI_CONFIG"); rhoasConfig != "" {
+	if rhoasConfig := os.Getenv("RHOASTF_CONFIG"); rhoasConfig != "" {
 		path = rhoasConfig
 	} else {
-		path, err = getUserConfig(".rhoascli.json")
+		path, err = getUserConfig(".rhoastf.json")
 		if err != nil {
 			return "", err
 		}
