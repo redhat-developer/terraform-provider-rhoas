@@ -3,8 +3,8 @@ HOSTNAME=registry.terraform.io
 NAMESPACE=pmuir
 NAME=rhoas
 BINARY=terraform-provider-rhoas
-VERSION=0.1
-OS_ARCH=darwin_amd64
+VERSION ?= 0.1
+OS_ARCH ?= darwin_amd64
 
 default: install
 
