@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"os"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/cli/config"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/cli/connection"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/cloudproviders"
@@ -68,13 +69,26 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
+	cfg := config.NewFile()
+
+	loc, err := cfg.Location()
+	if err != nil {
+		return nil, diag.FromErr(err)
+	}
+
+	if _, err := os.Stat(loc); os.IsNotExist(err) {
+		cfg.Save(&config.Config{})
+	} else if err != nil {
+		return nil, diag.FromErr(err)
+	}
+
 	c, err := connection.
 		NewBuilder().
 		WithConnectionConfig(&connection.Config{
 			RequireAuth:    true,
 			RequireMASAuth: false,
 		}).
-		WithConfig(config.NewFile()).
+		WithConfig(cfg).
 		WithAuthURL(d.Get("auth_url").(string)).
 		WithMASAuthURL(DefaultMasAuthURL).
 		WithRefreshToken(d.Get("offline_token").(string)).
