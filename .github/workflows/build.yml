@@ -29,8 +29,8 @@ jobs:
         uses: actions/checkout@v2
       - name: Build docs
         run: make docs
-#      - run: git diff --no-ext-diff --exit-code
-#        name: Check if there are changes
+      - run: git diff --no-ext-diff --exit-code
+        name: Check if there are changes
   lint:
     runs-on: ubuntu-latest
     steps:
