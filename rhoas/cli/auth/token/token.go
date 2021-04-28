@@ -69,7 +69,7 @@ func Parse(textToken string) (token *jwt.Token, err error) {
 	parser := new(jwt.Parser)
 	token, _, err = parser.ParseUnverified(textToken, jwt.MapClaims{})
 	if err != nil {
-		err = fmt.Errorf("parse error: %v", err)
+		err = fmt.Errorf("parse error: %w", err)
 		return
 	}
 	return token, nil
@@ -102,7 +102,7 @@ func GetExpiry(tokenStr string, now time.Time) (expires bool,
 	if ok {
 		exp, ok = claim.(float64)
 		if !ok {
-			return false,time.Second, fmt.Errorf("expeted expire claim but got %v", claim)
+			return false, time.Second, fmt.Errorf("expeted expire claim but got %v", claim)
 		}
 	}
 	if exp == 0 {

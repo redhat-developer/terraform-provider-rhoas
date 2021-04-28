@@ -2,7 +2,7 @@ module redhat.com/rhoas/rhoas-terraform-provider/m
 
 require (
 	github.com/Nerzal/gocloak/v7 v7.11.0
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/hashicorp/terraform-plugin-docs v0.4.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.4.2
 	github.com/pkg/errors v0.9.1

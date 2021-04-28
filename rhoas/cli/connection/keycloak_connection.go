@@ -22,7 +22,6 @@ import (
 	"github.com/redhat-developer/app-services-cli/pkg/logging"
 
 	"github.com/Nerzal/gocloak/v7"
-
 )
 
 var DefaultScopes = []string{
