@@ -14,6 +14,7 @@ build:
 .PHONY: docs
 docs:
 	go mod download
+	echo Using tfplugindocs that needs to be manually installed from https://github.com/hashicorp/terraform-plugin-docs/releases
 	tfplugindocs
 
 release:
