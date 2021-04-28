@@ -3,7 +3,6 @@ package connection
 import (
 	"context"
 	"crypto/x509"
-	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -198,7 +197,7 @@ func (c *KeycloakConnection) API() *api.API {
 		if kas.IsErr(err, kas.ErrorNotFound) {
 			cachedKafkaAdminAPI = nil
 			cachedKafkaRequest = nil
-			cachedKafkaAdminErr = errors.New(fmt.Sprintf("Kafka not found %s", kafkaID))
+			cachedKafkaAdminErr = fmt.Errorf("kafka not found %s", kafkaID)
 
 			return cachedKafkaAdminAPI, cachedKafkaRequest, cachedKafkaAdminErr
 		} else if err != nil {
@@ -217,7 +216,7 @@ func (c *KeycloakConnection) API() *api.API {
 		if kafkaStatus != "ready" {
 			cachedKafkaAdminAPI = nil
 			cachedKafkaRequest = nil
-			cachedKafkaAdminErr = errors.New(fmt.Sprintf("not ready %s", kafkaInstance.GetName()))
+			cachedKafkaAdminErr = fmt.Errorf("not ready %s", kafkaInstance.GetName())
 
 			return cachedKafkaAdminAPI, cachedKafkaRequest, cachedKafkaAdminErr
 		}

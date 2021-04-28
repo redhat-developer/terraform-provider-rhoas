@@ -17,7 +17,7 @@ import (
 const (
 	DefaultAuthURL    = "https://sso.redhat.com/auth/realms/redhat-external"
 	DefaultMasAuthURL = "https://identity.api.openshift.com/auth/realms/rhoas-client-prod"
-	DefaultApiUrl     = "https://api.openshift.com"
+	DefaultAPIURL     = "https://api.openshift.com"
 	DefaultClientID   = "cloud-services"
 )
 
@@ -46,8 +46,8 @@ func Provider() *schema.Provider {
 			"api_url": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("API_URL", DefaultApiUrl),
-				Description: fmt.Sprintf("URL to the RHOAS services API. By default using production API (%s).", DefaultApiUrl),
+				DefaultFunc: schema.EnvDefaultFunc("API_URL", DefaultAPIURL),
+				Description: fmt.Sprintf("URL to the RHOAS services API. By default using production API (%s).", DefaultAPIURL),
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
@@ -76,10 +76,13 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		return nil, diag.FromErr(err)
 	}
 
-	if _, err := os.Stat(loc); os.IsNotExist(err) {
-		cfg.Save(&config.Config{})
-	} else if err != nil {
-		return nil, diag.FromErr(err)
+	if _, err2 := os.Stat(loc); os.IsNotExist(err2) {
+		err1 := cfg.Save(&config.Config{})
+		if err1 != nil {
+			return nil, diag.FromErr(err1)
+		}
+	} else if err2 != nil {
+		return nil, diag.FromErr(err2)
 	}
 
 	c, err := connection.

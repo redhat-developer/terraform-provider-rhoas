@@ -54,7 +54,10 @@ func dataSourceCloudProvidersRead(ctx context.Context, d *schema.ResourceData, m
 
 	var diags diag.Diagnostics
 
-	c := m.(*connection.KeycloakConnection)
+	c, ok := m.(*connection.KeycloakConnection)
+	if !ok {
+		return diag.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
+	}
 
 	api := c.API().Kafka()
 

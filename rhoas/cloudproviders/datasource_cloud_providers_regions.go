@@ -55,11 +55,18 @@ func dataSourceCloudProviderRegionsRead(ctx context.Context, d *schema.ResourceD
 
 	var diags diag.Diagnostics
 
-	c := m.(*connection.KeycloakConnection)
+	c, ok := m.(*connection.KeycloakConnection)
+	if !ok {
+		return diag.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
+	}
 
 	api := c.API().Kafka()
 
-	id := d.Get("id").(string)
+	val := d.Get("id")
+	id, ok := val.(string)
+	if !ok {
+		return diag.Errorf("unable to cast %v to string", val)
+	}
 
 	data, resp, err := api.ListCloudProviderRegions(ctx, id).Execute()
 	if err != nil {

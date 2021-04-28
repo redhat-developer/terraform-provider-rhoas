@@ -23,8 +23,12 @@ export OFFLINE_TOKEN=<offline token>
 terraform init && terraform apply
 ```
 
+## Linting
+
+1. Install [golangci-lint](https://golangci-lint.run/)
+2. Run `make lint`
+
 ## Status
 
 * All data providers are working
 * the rhoas_kafka resource is working
-* the rhoas_service_account resource isn't working quite

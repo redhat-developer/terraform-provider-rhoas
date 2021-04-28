@@ -32,7 +32,7 @@ provider "kafka" {
 
 resource "rhoas_kafka" "foo" {
   kafka {
-    name = "terraform-create-topic-1"s
+    name = "terraform-create-topic-1"
   }
 }
 

@@ -25,18 +25,18 @@ type Builder struct {
 	insecure          bool
 	disableKeepAlives bool
 	accessToken       string
-	refreshToken     string
-	masAccessToken   string
-	masRefreshToken  string
-	clientID         string
-	scopes           []string
-	apiURL           string
-	authURL          string
-	masAuthURL       string
-	config           config.IConfig
-	logger           logging.Logger
-	transportWrapper TransportWrapper
-	connectionConfig *Config
+	refreshToken      string
+	masAccessToken    string
+	masRefreshToken   string
+	clientID          string
+	scopes            []string
+	apiURL            string
+	authURL           string
+	masAuthURL        string
+	config            config.IConfig
+	logger            logging.Logger
+	transportWrapper  TransportWrapper
+	connectionConfig  *Config
 }
 
 // TransportWrapper is a wrapper for a transport of type http.RoundTripper.
@@ -240,8 +240,6 @@ func (b *Builder) BuildContext(ctx context.Context) (connection *KeycloakConnect
 	}
 
 	baseAuthURL := fmt.Sprintf("%v://%v", authURL.Scheme, authURL.Host)
-
-
 
 	_, kcRealm, ok := SplitKeycloakRealmURL(authURL)
 	if !ok {
