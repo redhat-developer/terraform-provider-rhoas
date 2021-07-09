@@ -47,9 +47,10 @@ output "all_kafkas" {
 
 Read-Only:
 
-- **bootstrap_server** (String)
+- **bootstrap_server_host** (String)
 - **cloud_provider** (String)
 - **created_at** (String)
+- **failed_reason** (String)
 - **href** (String)
 - **id** (String)
 - **kind** (String)
