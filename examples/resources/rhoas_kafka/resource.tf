@@ -8,12 +8,12 @@ terraform {
 
 provider "rhoas" {}
 
-resource "rhoas_kafka" "foo" {
+/*resource "rhoas_kafka" "foo" {
   kafka {
     name = "foo"
   }
 }
 
 output "bootstrap_server_foo" {
-  value = rhoas_kafka.foo.kafka[0].bootstrap_server
-}
+  value = rhoas_kafka.foo.kafka[0].bootstrap_server_host
+}*/

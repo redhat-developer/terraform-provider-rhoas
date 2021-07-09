@@ -6,10 +6,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
-	kasclient "github.com/redhat-developer/app-services-cli/pkg/api/kas/client"
+	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
 	"io/ioutil"
 	"log"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/cli/connection"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 	"time"
 )
@@ -64,7 +63,7 @@ var kafkaResourceSchema = map[string]*schema.Schema{
 					Computed:    true,
 					Description: "The username of the Red Hat account that owns the Kafka instance",
 				},
-				"bootstrap_server": {
+				"bootstrap_server_host": {
 					Description: "The bootstrap server (host:port)",
 					Type:        schema.TypeString,
 					Computed:    true,
@@ -116,14 +115,12 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	c, ok := m.(*connection.KeycloakConnection)
+	c, ok := m.(*kafkamgmtclient.APIClient)
 	if !ok {
 		return diag.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
 	}
 
-	api := c.API().Kafka()
-
-	apiErr, _, err := api.DeleteKafkaById(ctx, d.Id()).Async(true).Execute()
+	apiErr, _, err := c.DefaultApi.DeleteKafkaById(ctx, d.Id()).Async(true).Execute()
 	if err != nil && err.Error() == "404 " {
 		// the resource is deleted already
 		d.SetId("")
@@ -139,11 +136,11 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	deleteStateConf := &resource.StateChangeConf{
 		Delay: 5 * time.Second,
 		Pending: []string{
-			"deprovision",
+			"deprovision", "deleting",
 		},
 		Refresh: func() (interface{}, string, error) {
-			data, resp, err1 := api.GetKafkaById(ctx, d.Id()).Execute()
-			if err1 != nil && err1.Error() == "404 " {
+			data, resp, err1 := c.DefaultApi.GetKafkaById(ctx, d.Id()).Execute()
+			if err1 != nil && err1.Error() == "404 Not Found" {
 				return data, "404", nil
 			}
 			if err1 != nil {
@@ -151,12 +148,12 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 				if ioErr != nil {
 					log.Fatal(ioErr)
 				}
-				return nil, "", errors.Errorf("%s%s", err1.Error(), string(bodyBytes))
+				return nil, "", errors.Errorf("%s %s", err1.Error(), string(bodyBytes))
 			}
 			return data, *data.Status, nil
 		},
 		Target: []string{
-			"deleted",
+			"deleted", "404",
 		},
 		Timeout:                   d.Timeout(schema.TimeoutCreate),
 		MinTimeout:                5 * time.Second,
@@ -166,7 +163,7 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 
 	_, err = deleteStateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return diag.FromErr(errors.Wrapf(err, "Error waiting for example instance (%s) to be created", d.Id()))
+		return diag.FromErr(errors.Wrapf(err, "Error waiting for example instance (%s) to be deleted", d.Id()))
 	}
 
 	d.SetId("")
@@ -177,24 +174,26 @@ func kafkaRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 
 	var diags diag.Diagnostics
 
-	c, ok := m.(*connection.KeycloakConnection)
+	c, ok := m.(*kafkamgmtclient.APIClient)
 	if !ok {
 		return diag.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
 	}
 
-	api := c.API().Kafka()
-
 	var raw []map[string]interface{}
 
-	data, resp, err := api.GetKafkaById(ctx, d.Id()).Execute()
+	data, resp, err := c.DefaultApi.GetKafkaById(ctx, d.Id()).Execute()
 	if err != nil && err.Error() == "404 Not Found" {
 		d.SetId("")
 		return diags
 	}
 	if err != nil {
-		bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
-		if ioErr != nil {
-			log.Fatal(ioErr)
+		bodyBytes := []byte("empty response")
+		if resp != nil {
+			var ioErr error
+			bodyBytes, ioErr = ioutil.ReadAll(resp.Body)
+			if ioErr != nil {
+				log.Fatal(ioErr)
+			}
 		}
 		return diag.Errorf("%s %s", err.Error(), string(bodyBytes))
 	}
@@ -203,19 +202,14 @@ func kafkaRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 		return diag.FromErr(errors.WithStack(err))
 	}
 	raw = []map[string]interface{}{obj}
-
-	items := fixBootstrapServerHosts(raw)
-	if err != nil {
-		diag.FromErr(err)
-	}
-	if err := d.Set("kafka", items); err != nil {
+	if err := d.Set("kafka", raw); err != nil {
 		return diag.FromErr(err)
 	}
 	return diags
 }
 
-func createPayload(items []interface{}) ([]kasclient.KafkaRequestPayload, error) {
-	payload := make([]kasclient.KafkaRequestPayload, 0)
+func createPayload(items []interface{}) ([]kafkamgmtclient.KafkaRequestPayload, error) {
+	payload := make([]kafkamgmtclient.KafkaRequestPayload, 0)
 
 	for _, item := range items {
 		kafka, ok := item.(map[string]interface{})
@@ -240,7 +234,7 @@ func createPayload(items []interface{}) ([]kasclient.KafkaRequestPayload, error)
 			return nil, errors.Errorf("unable to cast %v to string", kafka["region"])
 		}
 
-		payload = append(payload, kasclient.KafkaRequestPayload{
+		payload = append(payload, kafkamgmtclient.KafkaRequestPayload{
 			CloudProvider: &cloudProvider,
 			MultiAz:       &multiAz,
 			Name:          name,
@@ -254,12 +248,10 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	c, ok := m.(*connection.KeycloakConnection)
+	c, ok := m.(*kafkamgmtclient.APIClient)
 	if !ok {
 		return diag.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
 	}
-
-	api := c.API().Kafka()
 
 	val := d.Get("kafka")
 	items, ok := val.([]interface{})
@@ -272,12 +264,16 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		return diag.FromErr(errors.Wrapf(err, "error building create Kafka request payload for %s", d.Id()))
 	}
 
-	kr, resp, err := api.CreateKafka(ctx).Async(true).KafkaRequestPayload(payload[0]).Execute()
+	kr, resp, err := c.DefaultApi.CreateKafka(ctx).Async(true).KafkaRequestPayload(payload[0]).Execute()
 
 	if err != nil {
-		bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
-		if ioErr != nil {
-			log.Fatal(ioErr)
+		bodyBytes := []byte("empty response")
+		if resp != nil {
+			var ioErr error
+			bodyBytes, ioErr = ioutil.ReadAll(resp.Body)
+			if ioErr != nil {
+				log.Fatal(ioErr)
+			}
 		}
 		return diag.Errorf("%s%s", err.Error(), string(bodyBytes))
 	}
@@ -296,16 +292,14 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 			"provisioning",
 		},
 		Refresh: func() (interface{}, string, error) {
-			c, ok := m.(*connection.KeycloakConnection)
+			c, ok := m.(*kafkamgmtclient.APIClient)
 			if !ok {
 				return nil, "", errors.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
 			}
 
-			api := c.API().Kafka()
-
 			var raw []map[string]interface{}
 
-			data, resp, err1 := api.GetKafkaById(ctx, *kr.Id).Execute()
+			data, resp, err1 := c.DefaultApi.GetKafkaById(ctx, *kr.Id).Execute()
 			if err1 != nil {
 				bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
 				if ioErr != nil {
@@ -319,8 +313,7 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 			}
 			raw = []map[string]interface{}{obj}
 
-			items := fixBootstrapServerHosts(raw)
-			return items, *data.Status, nil
+			return raw, *data.Status, nil
 		},
 		Target: []string{
 			"ready",

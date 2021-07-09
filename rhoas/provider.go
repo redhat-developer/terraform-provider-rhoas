@@ -6,9 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"os"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/cli/config"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/cli/connection"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/cloudproviders"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/kafkas"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/serviceaccounts"
@@ -65,54 +62,8 @@ func Provider() *schema.Provider {
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
-
-	cfg := config.NewFile()
-
-	loc, err := cfg.Location()
-	if err != nil {
-		return nil, diag.FromErr(err)
-	}
-
-	if _, err2 := os.Stat(loc); os.IsNotExist(err2) {
-		err1 := cfg.Save(&config.Config{})
-		if err1 != nil {
-			return nil, diag.FromErr(err1)
-		}
-	} else if err2 != nil {
-		return nil, diag.FromErr(err2)
-	}
-
-	c, err := connection.
-		NewBuilder().
-		WithConnectionConfig(&connection.Config{
-			RequireAuth:    true,
-			RequireMASAuth: false,
-		}).
-		WithConfig(cfg).
-		WithAuthURL(d.Get("auth_url").(string)).
-		WithMASAuthURL(DefaultMasAuthURL).
-		WithRefreshToken(d.Get("offline_token").(string)).
-		WithClientID(d.Get("client_id").(string)).
-		WithURL(d.Get("api_url").(string)).
-		Build()
-
-	if err != nil {
-		return nil, diag.FromErr(err)
-	}
-
-	err = c.RefreshTokens(ctx)
-
-	diags = append(diags, diag.Diagnostic{
-		Severity: diag.Warning,
-		Summary:  "got refresh token",
-	})
-
-	if err != nil {
-		diags = append(diags, diag.FromErr(err)...)
-	}
-
+	c := BuildKasAPIClient(d.Get("offline_token").(string), d.Get("client_id").(string), d.Get("auth_url").(string))
 	return c, diags
 }

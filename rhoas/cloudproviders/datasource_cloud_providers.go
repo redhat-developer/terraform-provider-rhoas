@@ -2,6 +2,7 @@ package cloudproviders
 
 import (
 	"context"
+	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
 	"io/ioutil"
 	"log"
 	"strconv"
@@ -9,7 +10,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/redhat-developer/app-services-cli/pkg/connection"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 )
 
@@ -54,14 +54,12 @@ func dataSourceCloudProvidersRead(ctx context.Context, d *schema.ResourceData, m
 
 	var diags diag.Diagnostics
 
-	c, ok := m.(*connection.KeycloakConnection)
+	c, ok := m.(*kafkamgmtclient.APIClient)
 	if !ok {
 		return diag.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
 	}
 
-	api := c.API().Kafka()
-
-	data, resp, err := api.ListCloudProviders(ctx).Execute()
+	data, resp, err := c.DefaultApi.GetCloudProviders(ctx).Execute()
 	if err != nil {
 		bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
 		if ioErr != nil {

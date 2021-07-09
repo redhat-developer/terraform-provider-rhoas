@@ -5,9 +5,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
+	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
 	"io/ioutil"
 	"log"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/cli/connection"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 	"strconv"
 	"time"
@@ -65,7 +65,7 @@ func DataSourceKafkas() *schema.Resource {
 							Computed:    true,
 							Description: "The username of the Red Hat account that owns the Kafka instance",
 						},
-						"bootstrap_server": {
+						"bootstrap_server_host": {
 							Description: "The bootstrap server (host:port)",
 							Type:        schema.TypeString,
 							Computed:    true,
@@ -95,6 +95,11 @@ func DataSourceKafkas() *schema.Resource {
 							Type:        schema.TypeString,
 							Computed:    true,
 						},
+						"failed_reason": {
+							Description: "The reason the instance failed",
+							Type:        schema.TypeString,
+							Computed:    true,
+						},
 					},
 				},
 			},
@@ -106,12 +111,10 @@ func dataSourceKafkasRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 	var diags diag.Diagnostics
 
-	c, ok := m.(*connection.KeycloakConnection)
+	c, ok := m.(*kafkamgmtclient.APIClient)
 	if !ok {
 		return diag.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
 	}
-
-	api := c.API().Kafka()
 
 	var raw []map[string]interface{}
 
@@ -121,7 +124,7 @@ func dataSourceKafkasRead(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.Errorf("unable to cast %v to string", val)
 	}
 
-	data, resp, err := api.ListKafkas(ctx).Execute()
+	data, resp, err := c.DefaultApi.GetKafkas(ctx).Execute()
 	if err != nil {
 		bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
 		if ioErr != nil {
@@ -139,9 +142,7 @@ func dataSourceKafkasRead(ctx context.Context, d *schema.ResourceData, m interfa
 		raw = append(raw, item.(map[string]interface{}))
 	}
 
-	items := fixBootstrapServerHosts(raw)
-
-	if err := d.Set("kafkas", items); err != nil {
+	if err := d.Set("kafkas", raw); err != nil {
 		return diag.FromErr(err)
 	}
 

@@ -2,6 +2,7 @@ package serviceaccounts
 
 import (
 	"context"
+	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
 	"io/ioutil"
 	"log"
 	"strconv"
@@ -9,7 +10,6 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/cli/connection"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 )
 
@@ -73,14 +73,12 @@ func dataSourceKafkasRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 	var diags diag.Diagnostics
 
-	c, ok := m.(*connection.KeycloakConnection)
+	c, ok := m.(*kafkamgmtclient.APIClient)
 	if !ok {
 		return diag.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
 	}
 
-	api := c.API().Kafka()
-
-	data, resp, err := api.ListServiceAccounts(ctx).Execute()
+	data, resp, err := c.SecurityApi.GetServiceAccounts(ctx).Execute()
 	if err != nil {
 		bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
 		if ioErr != nil {

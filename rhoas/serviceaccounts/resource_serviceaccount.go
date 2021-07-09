@@ -5,10 +5,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
-	kasclient "github.com/redhat-developer/app-services-cli/pkg/api/kas/client"
+	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
 	"io/ioutil"
 	"log"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/cli/connection"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 	"time"
 )
@@ -69,14 +68,12 @@ func serviceAccountDelete(ctx context.Context, d *schema.ResourceData, m interfa
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	c, ok := m.(*connection.KeycloakConnection)
+	c, ok := m.(*kafkamgmtclient.APIClient)
 	if !ok {
 		return diag.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
 	}
 
-	api := c.API().Kafka()
-
-	_, resp, err := api.DeleteServiceAccount(ctx, d.Id()).Execute()
+	_, resp, err := c.SecurityApi.DeleteServiceAccountById(ctx, d.Id()).Execute()
 	if err != nil && err.Error() == "404 " {
 		// the resource is deleted already
 		d.SetId("")
@@ -98,12 +95,10 @@ func serviceAccountRead(ctx context.Context, d *schema.ResourceData, m interface
 
 	var diags diag.Diagnostics
 
-	c, ok := m.(*connection.KeycloakConnection)
+	c, ok := m.(*kafkamgmtclient.APIClient)
 	if !ok {
 		return diag.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
 	}
-
-	api := c.API().Kafka()
 
 	var raw []map[string]interface{}
 
@@ -127,7 +122,7 @@ func serviceAccountRead(ctx context.Context, d *schema.ResourceData, m interface
 		}
 	}
 
-	serviceAccount, resp, err := api.GetServiceAccountById(ctx, d.Id()).Execute()
+	serviceAccount, resp, err := c.SecurityApi.GetServiceAccountById(ctx, d.Id()).Execute()
 
 	if err != nil && err.Error() == "404 Not Found" {
 		d.SetId("")
@@ -135,11 +130,15 @@ func serviceAccountRead(ctx context.Context, d *schema.ResourceData, m interface
 	}
 
 	if err != nil {
-		bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
-		if ioErr != nil {
-			log.Fatal(ioErr)
+		bodyBytes := []byte("empty response")
+		if resp != nil {
+			var ioErr error
+			bodyBytes, ioErr = ioutil.ReadAll(resp.Body)
+			if ioErr != nil {
+				log.Fatal(ioErr)
+			}
 		}
-		return diag.Errorf("%s%s", err.Error(), string(bodyBytes))
+		return diag.Errorf("%s %s", err.Error(), string(bodyBytes))
 	}
 
 	obj, err := utils.AsMap(serviceAccount)
@@ -173,12 +172,10 @@ func serviceAccountCreate(ctx context.Context, d *schema.ResourceData, m interfa
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	c, ok := m.(*connection.KeycloakConnection)
+	c, ok := m.(*kafkamgmtclient.APIClient)
 	if !ok {
 		return diag.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
 	}
-
-	api := c.API().Kafka()
 
 	val := d.Get("service_account")
 	items, ok := val.([]interface{})
@@ -186,7 +183,7 @@ func serviceAccountCreate(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.Errorf("unable to cast %v to []interface{}", val)
 	}
 
-	payload := make([]kasclient.ServiceAccountRequest, 0)
+	payload := make([]kafkamgmtclient.ServiceAccountRequest, 0)
 
 	for _, item := range items {
 		kafka, ok := item.(map[string]interface{})
@@ -203,13 +200,13 @@ func serviceAccountCreate(ctx context.Context, d *schema.ResourceData, m interfa
 			return diag.Errorf("unable to cast %v to string", kafka["name"])
 		}
 
-		payload = append(payload, kasclient.ServiceAccountRequest{
+		payload = append(payload, kafkamgmtclient.ServiceAccountRequest{
 			Description: &description,
 			Name:        name,
 		})
 	}
 
-	srr, resp, err := api.CreateServiceAccount(ctx).ServiceAccountRequest(payload[0]).Execute()
+	srr, resp, err := c.SecurityApi.CreateServiceAccount(ctx).ServiceAccountRequest(payload[0]).Execute()
 	if err != nil {
 		return diag.FromErr(err)
 	}
