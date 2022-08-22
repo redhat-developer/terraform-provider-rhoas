@@ -25,7 +25,7 @@ terraform {
 provider "rhoas" {}
 
 provider "kafka" {
-  bootstrap_servers = [ rhoas_kafka.foo.kafka[0].bootstrap_server ]
+  bootstrap_servers = [ rhoas_kafka.foo.kafka[0].bootstrap_server_host ]
   tls_enabled = true
   sasl_username = rhoas_service_account.foo.service_account[0].client_id
   sasl_password = rhoas_service_account.foo.service_account[0].client_secret
