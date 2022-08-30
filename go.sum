@@ -364,8 +364,8 @@ github.com/posener/complete v1.1.1 h1:ccV59UEOTzVDnDUEFdT95ZzHVZ+5+158q8+SJb2QV5
 github.com/posener/complete v1.1.1/go.mod h1:em0nMJCgc9GFtwrmVmEMR/ZL6WyhyjMBndrE9hABlRI=
 github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4/go.mod h1:xMI15A0UPsDsEKsMN9yxemIoYk6Tm2C1GtYGdfGttqA=
 github.com/redhat-developer/app-services-sdk-go v0.10.0/go.mod h1:enn8Zz6IT0HZYzS6LSttiME2apwnvfVWZnGRS81A4rk=
-github.com/redhat-developer/app-services-sdk-go v0.10.1-0.20220829165431-e6e2a7e0ce94 h1:UaUeBmGWdWF208h/XG0rAlmTS1p0pXBejHGJAJbxBgA=
-github.com/redhat-developer/app-services-sdk-go v0.10.1-0.20220829165431-e6e2a7e0ce94/go.mod h1:XAuy1xpY6OxnZ2VhJFTM0HM0WMJ0R31AFRFDvYcvkTE=
+github.com/redhat-developer/app-services-sdk-go v0.11.0 h1:4r5YKDW2LN2oa51PXrYidByiWfTXB9Z+1YqjtnPaBZ0=
+github.com/redhat-developer/app-services-sdk-go v0.11.0/go.mod h1:XAuy1xpY6OxnZ2VhJFTM0HM0WMJ0R31AFRFDvYcvkTE=
 github.com/redhat-developer/app-services-sdk-go/kafkamgmt v0.13.0 h1:aSuONBf3znnotUX7ywLh6xvOVVFsPRIUCfsEBWTWEM0=
 github.com/redhat-developer/app-services-sdk-go/kafkamgmt v0.13.0/go.mod h1:ILvcakLEXMLZyRdO//WJZNk9fdFbnU+cM3XrBvubE64=
 github.com/rogpeppe/fastuuid v1.2.0/go.mod h1:jVj6XXZzXRy/MSR5jhDC/2q6DgLz+nrA6LYCDYWNEvQ=
