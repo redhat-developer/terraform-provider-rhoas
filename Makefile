@@ -4,7 +4,7 @@ NAMESPACE=pmuir
 NAME=rhoas
 BINARY=terraform-provider-rhoas
 VERSION ?= 0.1
-OS_ARCH ?= darwin_amd64
+OS_ARCH ?= darwin_arm64
 
 default: install
 

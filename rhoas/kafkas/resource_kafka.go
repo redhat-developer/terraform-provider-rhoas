@@ -28,13 +28,6 @@ var kafkaResourceSchema = map[string]*schema.Schema{
 					Default:     "aws",
 					ForceNew:    true,
 				},
-				"multi_az": {
-					Description: "Whether the Kafka instance should be highly available by supporting multi-az",
-					Type:        schema.TypeBool,
-					Optional:    true,
-					Default:     true,
-					ForceNew:    true,
-				},
 				"region": {
 					Description: "The region to use. A list of available regions can be obtained using `data.rhoas_cloud_providers_regions`.",
 					Type:        schema.TypeString,
@@ -127,8 +120,8 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		return diags
 	}
 	if err != nil {
-		if apiErr.Reason != nil {
-			return diag.Errorf("%s%s", err.Error(), *apiErr.Reason)
+		if apiErr.Reason != "" {
+			return diag.Errorf("%s%s", err.Error(), apiErr.Reason)
 		}
 		return diag.Errorf("%s", err.Error())
 	}
@@ -225,7 +218,6 @@ func createPayload(items []interface{}) ([]kafkamgmtclient.KafkaRequestPayload, 
 		if !ok {
 			return nil, errors.Errorf("unable to cast %v to string", kafka["name"])
 		}
-		multiAz, ok := kafka["multi_az"].(bool)
 		if !ok {
 			return nil, errors.Errorf("unable to cast %v to string", kafka["multi_az"])
 		}
@@ -236,7 +228,6 @@ func createPayload(items []interface{}) ([]kafkamgmtclient.KafkaRequestPayload, 
 
 		payload = append(payload, kafkamgmtclient.KafkaRequestPayload{
 			CloudProvider: &cloudProvider,
-			MultiAz:       &multiAz,
 			Name:          name,
 			Region:        &region,
 		})
@@ -278,11 +269,11 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		return diag.Errorf("%s%s", err.Error(), string(bodyBytes))
 	}
 
-	if kr.Id == nil {
+	if kr.Id == "" {
 		return diag.Errorf("no id provided")
 	}
 
-	d.SetId(*kr.Id)
+	d.SetId(kr.Id)
 
 	createStateConf := &resource.StateChangeConf{
 		Delay: 5 * time.Second,
@@ -299,7 +290,7 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 
 			var raw []map[string]interface{}
 
-			data, resp, err1 := c.DefaultApi.GetKafkaById(ctx, *kr.Id).Execute()
+			data, resp, err1 := c.DefaultApi.GetKafkaById(ctx, kr.Id).Execute()
 			if err1 != nil {
 				bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
 				if ioErr != nil {
