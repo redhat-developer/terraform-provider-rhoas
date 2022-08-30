@@ -5,8 +5,8 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.4.2
 	github.com/pkg/errors v0.9.1
 	github.com/redhat-developer/app-services-sdk-go v0.11.0 // indirect
+	github.com/redhat-developer/app-services-sdk-go/auth v0.1.0
 	github.com/redhat-developer/app-services-sdk-go/kafkamgmt v0.13.0
-	golang.org/x/oauth2 v0.0.0-20220630143837-2104d58473e0
 
 )
 
