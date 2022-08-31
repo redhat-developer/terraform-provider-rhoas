@@ -3,19 +3,17 @@ package rhoas
 import (
 	"context"
 	"fmt"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	authAPI "github.com/redhat-developer/app-services-sdk-go/auth/apiv1"
+	kafkamgmt "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/cloudproviders"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/kafkas"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/serviceaccounts"
 )
 
 const (
-	DefaultAuthURL    = "https://sso.redhat.com/auth/realms/redhat-external"
-	DefaultMasAuthURL = "https://identity.api.openshift.com/auth/realms/rhoas-client-prod"
-	DefaultAPIURL     = "https://api.openshift.com"
-	DefaultClientID   = "cloud-services"
+	DefaultAPIURL = "https://api.openshift.com"
 )
 
 // Provider -
@@ -31,14 +29,14 @@ func Provider() *schema.Provider {
 			"auth_url": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("AUTH_URL", DefaultAuthURL),
-				Description: fmt.Sprintf("The auth url is used to get an access token for the service by passing the offline token. By default production is used (%s).", DefaultAuthURL),
+				DefaultFunc: schema.EnvDefaultFunc("AUTH_URL", authAPI.DefaultAuthURL),
+				Description: fmt.Sprintf("The auth url is used to get an access token for the service by passing the offline token. By default production is used (%s).", authAPI.DefaultAuthURL),
 			},
 			"client_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("CLIENT_ID", DefaultClientID),
-				Description: fmt.Sprintf("The client id is used to when getting the access token using the offline token. By default %s is used.", DefaultClientID),
+				DefaultFunc: schema.EnvDefaultFunc("CLIENT_ID", authAPI.DefaultClientID),
+				Description: fmt.Sprintf("The client id is used to when getting the access token using the offline token. By default %s is used.", authAPI.DefaultClientID),
 			},
 			"api_url": {
 				Type:        schema.TypeString,
@@ -64,6 +62,12 @@ func Provider() *schema.Provider {
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
-	c := BuildKasAPIClient(d.Get("offline_token").(string), d.Get("client_id").(string), d.Get("auth_url").(string))
-	return c, diags
+	httpClient := authAPI.BuildAuthenticatedHTTPClient(d.Get("offline_token").(string))
+
+	// go from c to *kafkamgmtclient.APIClient
+	client := kafkamgmt.NewAPIClient(&kafkamgmt.Config{
+		HTTPClient: httpClient,
+	})
+
+	return client, diags
 }

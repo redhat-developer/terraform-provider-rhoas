@@ -37,6 +37,9 @@ bin
 *.tfstate
 *.tfstate.*
 
+# terraform file in root
+main.tf
+
 # Crash log files
 crash.log
 

@@ -224,11 +224,11 @@ func serviceAccountCreate(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.Errorf("%s%s", err.Error(), string(bodyBytes))
 	}
 
-	if srr.Id == nil {
+	if srr.Id == "" {
 		return diag.Errorf("no id provided")
 	}
 
-	d.SetId(*srr.Id)
+	d.SetId(srr.Id)
 
 	obj, err := utils.AsMap(srr)
 	if err != nil {
