@@ -4,7 +4,27 @@ NAMESPACE=pmuir
 NAME=rhoas
 BINARY=terraform-provider-rhoas
 VERSION ?= 0.1
-OS_ARCH ?= darwin_arm64
+
+
+ifeq ($(OS),Windows_NT)
+	OS_ARCH ?=windows_amd64
+else
+    UNAME_S := $(shell uname -s)
+    ifeq ($(UNAME_S),Linux)
+    	OS_ARCH ?=linux
+    endif
+    ifeq ($(UNAME_S),Darwin)
+        OS_ARCH ?=darwin
+    endif
+
+    UNAME_P := $(shell uname -p)
+    ifeq ($(UNAME_P),x86_64)
+       	OS_ARCH := $(OS_ARCH)_amd64
+    endif
+    ifneq ($(filter arm%,$(UNAME_P)),)
+        OS_ARCH := $(OS_ARCH)_arm64
+    endif
+endif
 
 default: install
 
