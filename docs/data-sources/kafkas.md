@@ -36,30 +36,30 @@ output "all_kafkas" {
 
 ### Optional
 
-- **id** (String) The id of Kafka instance
+- `id` (String) The id of Kafka instance
 
 ### Read-Only
 
-- **kafkas** (List of Object) The list of Kafka instances (see [below for nested schema](#nestedatt--kafkas))
+- `kafkas` (List of Object) The list of Kafka instances (see [below for nested schema](#nestedatt--kafkas))
 
 <a id="nestedatt--kafkas"></a>
 ### Nested Schema for `kafkas`
 
 Read-Only:
 
-- **bootstrap_server_host** (String)
-- **cloud_provider** (String)
-- **created_at** (String)
-- **failed_reason** (String)
-- **href** (String)
-- **id** (String)
-- **kind** (String)
-- **multi_az** (Boolean)
-- **name** (String)
-- **owner** (String)
-- **region** (String)
-- **status** (String)
-- **updated_at** (String)
-- **version** (String)
+- `bootstrap_server_host` (String)
+- `cloud_provider` (String)
+- `created_at` (String)
+- `failed_reason` (String)
+- `href` (String)
+- `id` (String)
+- `kind` (String)
+- `multi_az` (Boolean)
+- `name` (String)
+- `owner` (String)
+- `region` (String)
+- `status` (String)
+- `updated_at` (String)
+- `version` (String)
 
 
