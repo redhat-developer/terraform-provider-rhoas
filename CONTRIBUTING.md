@@ -23,7 +23,7 @@ export OFFLINE_TOKEN=<offline token>
 terraform init && terraform apply
 ```
 
-## Debuging in VsCode
+## Debuging in VSCode
 Run the lanuch configuration called *Debug* in VsCode, this will output a value for an enviroment variable 
 called `TF_REATTACH_PROVIDERS` in the Debug Console window, copy this output.
 
