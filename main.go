@@ -15,6 +15,7 @@ func main() {
 
 	plugin.Serve(&plugin.ServeOpts{
 		ProviderFunc: rhoas.Provider,
+		ProviderAddr: "registry.terraform.io/redhat-developer/rhoas",
 		Debug:        debug,
 	})
 }
