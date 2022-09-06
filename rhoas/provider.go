@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	authAPI "github.com/redhat-developer/app-services-sdk-go/auth/apiv1"
 	kafkamgmt "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1"
+	serviceAccounts "github.com/redhat-developer/app-services-sdk-go/serviceaccountmgmt/apiv1/client"
+	rhoasClients "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/clients"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/cloudproviders"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/kafkas"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/serviceaccounts"
@@ -64,10 +66,20 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	var diags diag.Diagnostics
 	httpClient := authAPI.BuildAuthenticatedHTTPClient(d.Get("offline_token").(string))
 
-	// go from c to *kafkamgmtclient.APIClient
-	client := kafkamgmt.NewAPIClient(&kafkamgmt.Config{
+	kafkaClient := kafkamgmt.NewAPIClient(&kafkamgmt.Config{
 		HTTPClient: httpClient,
 	})
 
-	return client, diags
+	serviceAccountClient := serviceAccounts.NewAPIClient(&serviceAccounts.Configuration{
+		HTTPClient: httpClient,
+	})
+
+	// package both service account client and kafka client together to be used in the provider
+	// these are passed to each action we do and can be use to CRUD kafkas/serviceAccounts
+	clients := &rhoasClients.Clients{
+		KafkaClient:          kafkaClient,
+		ServiceAccountClient: serviceAccountClient,
+	}
+
+	return clients, diags
 }

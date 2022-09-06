@@ -2,7 +2,7 @@ package serviceaccounts
 
 import (
 	"context"
-	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
+	serviceAccounts "github.com/redhat-developer/app-services-sdk-go/serviceaccountmgmt/apiv1/client"
 	"io/ioutil"
 	"log"
 	"strconv"
@@ -73,12 +73,12 @@ func dataSourceKafkasRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 	var diags diag.Diagnostics
 
-	c, ok := m.(*kafkamgmtclient.APIClient)
+	c, ok := m.(*serviceAccounts.APIClient)
 	if !ok {
 		return diag.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
 	}
 
-	data, resp, err := c.SecurityApi.GetServiceAccounts(ctx).Execute()
+	data, resp, err := c.ServiceAccountsApi.GetServiceAccounts(ctx).Execute()
 	if err != nil {
 		bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
 		if ioErr != nil {
