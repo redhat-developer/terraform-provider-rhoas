@@ -42,10 +42,10 @@ output "bootstrap_server_foo" {
 
 ### Optional
 
-- **api_url** (String) URL to the RHOAS services API. By default using production API (https://api.openshift.com).
-- **auth_url** (String) The auth url is used to get an access token for the service by passing the offline token. By default production is used (https://sso.redhat.com/auth/realms/redhat-external).
-- **client_id** (String) The client id is used to when getting the access token using the offline token. By default cloud-services is used.
-- **offline_token** (String) The offline token is a refresh token with no expiry and can be used by non-interactive processes to provide an access token for Red Hat OpenShift Application Services. The offline token can be obtained from [https://cloud.redhat.com/openshift/token](https://cloud.redhat.com/openshift/token). As the offline token is a sensitive value that varies between environments it is best specified using the `OFFLINE_TOKEN` environment variable.
+- `api_url` (String) URL to the RHOAS services API. By default using production API (https://api.openshift.com).
+- `auth_url` (String) The auth url is used to get an access token for the service by passing the offline token. By default production is used (https://sso.redhat.com/auth/realms/redhat-external).
+- `client_id` (String) The client id is used to when getting the access token using the offline token. By default cloud-services is used.
+- `offline_token` (String) The offline token is a refresh token with no expiry and can be used by non-interactive processes to provide an access token for Red Hat OpenShift Application Services. The offline token can be obtained from [https://cloud.redhat.com/openshift/token](https://cloud.redhat.com/openshift/token). As the offline token is a sensitive value that varies between environments it is best specified using the `OFFLINE_TOKEN` environment variable.
 
 ## Source code
 
