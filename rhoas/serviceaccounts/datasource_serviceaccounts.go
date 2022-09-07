@@ -2,9 +2,9 @@ package serviceaccounts
 
 import (
 	"context"
-	serviceAccounts "github.com/redhat-developer/app-services-sdk-go/serviceaccountmgmt/apiv1/client"
 	"io/ioutil"
 	"log"
+	rhoasClients "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/clients"
 	"strconv"
 	"time"
 
@@ -73,12 +73,12 @@ func dataSourceKafkasRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 	var diags diag.Diagnostics
 
-	c, ok := m.(*serviceAccounts.APIClient)
+	c, ok := m.(*rhoasClients.Clients)
 	if !ok {
-		return diag.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
+		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
 	}
 
-	data, resp, err := c.ServiceAccountsApi.GetServiceAccounts(ctx).Execute()
+	data, resp, err := c.ServiceAccountClient.ServiceAccountsApi.GetServiceAccounts(ctx).Execute()
 	if err != nil {
 		bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
 		if ioErr != nil {

@@ -70,9 +70,9 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		HTTPClient: httpClient,
 	})
 
-	serviceAccountClient := serviceAccounts.NewAPIClient(&serviceAccounts.Configuration{
-		HTTPClient: httpClient,
-	})
+	config := serviceAccounts.NewConfiguration()
+	config.HTTPClient = httpClient
+	serviceAccountClient := serviceAccounts.NewAPIClient(config)
 
 	// package both service account client and kafka client together to be used in the provider
 	// these are passed to each action we do and can be use to CRUD kafkas/serviceAccounts

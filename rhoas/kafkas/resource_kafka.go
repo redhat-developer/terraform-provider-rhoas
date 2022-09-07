@@ -9,6 +9,7 @@ import (
 	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
 	"io/ioutil"
 	"log"
+	rhoasClients "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/clients"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 	"time"
 )
@@ -108,12 +109,12 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	c, ok := m.(*kafkamgmtclient.APIClient)
+	c, ok := m.(*rhoasClients.Clients)
 	if !ok {
-		return diag.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
+		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
 	}
 
-	apiErr, _, err := c.DefaultApi.DeleteKafkaById(ctx, d.Id()).Async(true).Execute()
+	apiErr, _, err := c.KafkaClient.DefaultApi.DeleteKafkaById(ctx, d.Id()).Async(true).Execute()
 	if err != nil && err.Error() == "404 " {
 		// the resource is deleted already
 		d.SetId("")
@@ -132,7 +133,7 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 			"deprovision", "deleting",
 		},
 		Refresh: func() (interface{}, string, error) {
-			data, resp, err1 := c.DefaultApi.GetKafkaById(ctx, d.Id()).Execute()
+			data, resp, err1 := c.KafkaClient.DefaultApi.GetKafkaById(ctx, d.Id()).Execute()
 			if err1 != nil && err1.Error() == "404 Not Found" {
 				return data, "404", nil
 			}
@@ -167,14 +168,14 @@ func kafkaRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 
 	var diags diag.Diagnostics
 
-	c, ok := m.(*kafkamgmtclient.APIClient)
+	c, ok := m.(*rhoasClients.Clients)
 	if !ok {
-		return diag.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
+		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
 	}
 
 	var raw []map[string]interface{}
 
-	data, resp, err := c.DefaultApi.GetKafkaById(ctx, d.Id()).Execute()
+	data, resp, err := c.KafkaClient.DefaultApi.GetKafkaById(ctx, d.Id()).Execute()
 	if err != nil && err.Error() == "404 Not Found" {
 		d.SetId("")
 		return diags
@@ -239,9 +240,9 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	c, ok := m.(*kafkamgmtclient.APIClient)
+	c, ok := m.(*rhoasClients.Clients)
 	if !ok {
-		return diag.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
+		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
 	}
 
 	val := d.Get("kafka")
@@ -255,7 +256,7 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		return diag.FromErr(errors.Wrapf(err, "error building create Kafka request payload for %s", d.Id()))
 	}
 
-	kr, resp, err := c.DefaultApi.CreateKafka(ctx).Async(true).KafkaRequestPayload(payload[0]).Execute()
+	kr, resp, err := c.KafkaClient.DefaultApi.CreateKafka(ctx).Async(true).KafkaRequestPayload(payload[0]).Execute()
 
 	if err != nil {
 		bodyBytes := []byte("empty response")
@@ -283,14 +284,14 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 			"provisioning",
 		},
 		Refresh: func() (interface{}, string, error) {
-			c, ok := m.(*kafkamgmtclient.APIClient)
+			c, ok := m.(*rhoasClients.Clients)
 			if !ok {
-				return nil, "", errors.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
+				return nil, "", errors.Errorf("unable to cast %v to *rhoasClients.Clients", m)
 			}
 
 			var raw []map[string]interface{}
 
-			data, resp, err1 := c.DefaultApi.GetKafkaById(ctx, kr.Id).Execute()
+			data, resp, err1 := c.KafkaClient.DefaultApi.GetKafkaById(ctx, kr.Id).Execute()
 			if err1 != nil {
 				bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
 				if ioErr != nil {

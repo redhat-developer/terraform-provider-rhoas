@@ -185,18 +185,18 @@ func serviceAccountCreate(ctx context.Context, d *schema.ResourceData, m interfa
 
 	payload := make([]serviceAccounts.ServiceAccountCreateRequestData, 0)
 	for _, item := range items {
-		kafka, ok := item.(map[string]interface{})
+		serviceAccount, ok := item.(map[string]interface{})
 		if !ok {
 			return diag.Errorf("unable to cast %v to map[string]interface{}", item)
 		}
 
-		description, ok := kafka["description"].(string)
+		description, ok := serviceAccount["description"].(string)
 		if !ok {
-			return diag.Errorf("unable to cast %v to string", kafka["description"])
+			return diag.Errorf("unable to cast %v to string", serviceAccount["description"])
 		}
-		name, ok := kafka["name"].(string)
+		name, ok := serviceAccount["name"].(string)
 		if !ok {
-			return diag.Errorf("unable to cast %v to string", kafka["name"])
+			return diag.Errorf("unable to cast %v to string", serviceAccount["name"])
 		}
 
 		payload = append(payload, serviceAccounts.ServiceAccountCreateRequestData{
