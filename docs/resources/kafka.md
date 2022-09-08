@@ -39,29 +39,15 @@ output "bootstrap_server_foo" {
 
 ### Required
 
-- `kafka` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--kafka))
+- `name` (String) The name of the Kafka instance
 
 ### Optional
 
+- `cloud_provider` (String) The cloud provider to use. A list of available cloud providers can be obtained using `data.rhoas_cloud_providers`.
+- `region` (String) The region to use. A list of available regions can be obtained using `data.rhoas_cloud_providers_regions`.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only
-
-- `id` (String) The ID of this resource.
-
-<a id="nestedblock--kafka"></a>
-### Nested Schema for `kafka`
-
-Required:
-
-- `name` (String) The name of the Kafka instance
-
-Optional:
-
-- `cloud_provider` (String) The cloud provider to use. A list of available cloud providers can be obtained using `data.rhoas_cloud_providers`.
-- `region` (String) The region to use. A list of available regions can be obtained using `data.rhoas_cloud_providers_regions`.
-
-Read-Only:
 
 - `bootstrap_server_host` (String) The bootstrap server (host:port)
 - `created_at` (String) The RFC3339 date and time at which the Kafka instance was created
@@ -72,7 +58,6 @@ Read-Only:
 - `status` (String) The status of the Kafka instance
 - `updated_at` (String) The RFC3339 date and time at which the Kafka instance was last updated
 - `version` (String) The version of Kafka the instance is using
-
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`
