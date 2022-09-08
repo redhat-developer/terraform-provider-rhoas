@@ -369,6 +369,8 @@ github.com/redhat-developer/app-services-sdk-go/auth v0.1.0 h1:tqEFJwiUs502mVJ25
 github.com/redhat-developer/app-services-sdk-go/auth v0.1.0/go.mod h1:Bi1j6IJZ8rOeaZNWKoZWINXfta/WLpSQFT7VaPJFzng=
 github.com/redhat-developer/app-services-sdk-go/kafkamgmt v0.13.0 h1:aSuONBf3znnotUX7ywLh6xvOVVFsPRIUCfsEBWTWEM0=
 github.com/redhat-developer/app-services-sdk-go/kafkamgmt v0.13.0/go.mod h1:ILvcakLEXMLZyRdO//WJZNk9fdFbnU+cM3XrBvubE64=
+github.com/redhat-developer/app-services-sdk-go/serviceaccountmgmt v0.9.0 h1:kMvH66RXnxrF7FKraWu7n1BnaWrCUchw2unYa9rl/IM=
+github.com/redhat-developer/app-services-sdk-go/serviceaccountmgmt v0.9.0/go.mod h1:kpEKXWqyD6GUiQjBHCGzp/LIbCBfkTWpPo4VqkQ9zq4=
 github.com/rogpeppe/fastuuid v1.2.0/go.mod h1:jVj6XXZzXRy/MSR5jhDC/2q6DgLz+nrA6LYCDYWNEvQ=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/rogpeppe/go-internal v1.6.1 h1:/FiVV8dS/e+YqF2JvO3yXRFbBLTIuSDkuC7aBOAvL+k=
