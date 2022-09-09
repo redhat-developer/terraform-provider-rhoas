@@ -246,3 +246,41 @@ func serviceAccountCreate(ctx context.Context, d *schema.ResourceData, m interfa
 
 	return diags
 }
+
+func setResourceDataFromServiceAccountData(d *schema.ResourceData, serviceAccountData *map[string]interface{}) error {
+	var err error
+
+	if err = d.Set("client_id", (*serviceAccountData)["client_id"]); err != nil {
+		return err
+	}
+
+	if err = d.Set("href", (*serviceAccountData)["href"]); err != nil {
+		return err
+	}
+
+	if err = d.Set("description", (*serviceAccountData)["description"]); err != nil {
+		return err
+	}
+
+	if err = d.Set("id", (*serviceAccountData)["id"]); err != nil {
+		return err
+	}
+
+	if err = d.Set("kind", (*serviceAccountData)["kind"]); err != nil {
+		return err
+	}
+
+	if err = d.Set("name", (*serviceAccountData)["name"]); err != nil {
+		return err
+	}
+
+	if err = d.Set("owner", (*serviceAccountData)["owner"]); err != nil {
+		return err
+	}
+
+	if err = d.Set("created_at", (*serviceAccountData)["created_at"]); err != nil {
+		return err
+	}
+
+	return nil
+}
