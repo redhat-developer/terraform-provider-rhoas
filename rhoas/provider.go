@@ -77,10 +77,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 
 	// package both service account client and kafka client together to be used in the provider
 	// these are passed to each action we do and can be use to CRUD kafkas/serviceAccounts
-	clients := &rhoasClients.Clients{
-		KafkaClient:          kafkaClient,
-		ServiceAccountClient: serviceAccountClient,
-	}
+	client := rhoasClients.NewDefaultClient(kafkaClient, serviceAccountClient, httpClient)
 
-	return clients, diags
+	return client, diags
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"log"
-	rhoasClients "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/clients"
+	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 	"strconv"
 	"time"
@@ -111,7 +111,7 @@ func dataSourceKafkasRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 	var diags diag.Diagnostics
 
-	c, ok := m.(*rhoasClients.Clients)
+	api, ok := m.(rhoasAPI.API)
 	if !ok {
 		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
 	}
@@ -124,7 +124,7 @@ func dataSourceKafkasRead(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.Errorf("unable to cast %v to string", val)
 	}
 
-	data, resp, err := c.KafkaClient.DefaultApi.GetKafkas(ctx).Execute()
+	data, resp, err := api.KafkaMgmt().GetKafkas(ctx).Execute()
 	if err != nil {
 		bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
 		if ioErr != nil {

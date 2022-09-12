@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
 	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
-	rhoasClients "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/clients"
+	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 	"time"
 )
@@ -95,12 +95,12 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	c, ok := m.(*rhoasClients.Clients)
+	api, ok := m.(rhoasAPI.API)
 	if !ok {
 		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
 	}
 
-	apiErr, _, err := c.KafkaClient.DefaultApi.DeleteKafkaById(ctx, d.Id()).Async(true).Execute()
+	apiErr, _, err := api.KafkaMgmt().DeleteKafkaById(ctx, d.Id()).Async(true).Execute()
 	if err != nil && err.Error() == "404 " {
 		// the resource is deleted already
 		d.SetId("")
@@ -119,7 +119,7 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 			"deprovision", "deleting",
 		},
 		Refresh: func() (interface{}, string, error) {
-			data, resp, err1 := c.KafkaClient.DefaultApi.GetKafkaById(ctx, d.Id()).Execute()
+			data, resp, err1 := api.KafkaMgmt().GetKafkaById(ctx, d.Id()).Execute()
 			if err1 != nil {
 				apiError, err2 := utils.GetAPIError(resp, err1)
 				if err2 != nil {
@@ -152,12 +152,12 @@ func kafkaRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 
 	var diags diag.Diagnostics
 
-	c, ok := m.(*rhoasClients.Clients)
+	api, ok := m.(rhoasAPI.API)
 	if !ok {
 		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
 	}
 
-	kafka, resp, err := c.KafkaClient.DefaultApi.GetKafkaById(ctx, d.Id()).Execute()
+	kafka, resp, err := api.KafkaMgmt().GetKafkaById(ctx, d.Id()).Execute()
 	if err != nil {
 		apiError, err1 := utils.GetAPIError(resp, err)
 		if err1 != nil {
@@ -184,7 +184,7 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	c, ok := m.(*rhoasClients.Clients)
+	api, ok := m.(rhoasAPI.API)
 	if !ok {
 		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
 	}
@@ -194,7 +194,7 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		return diag.FromErr(err)
 	}
 
-	kr, resp, err := c.KafkaClient.DefaultApi.CreateKafka(ctx).Async(true).KafkaRequestPayload(*requestPayload).Execute()
+	kr, resp, err := api.KafkaMgmt().CreateKafka(ctx).Async(true).KafkaRequestPayload(*requestPayload).Execute()
 	if err != nil {
 		apiError, err1 := utils.GetAPIError(resp, err)
 		if err1 != nil {
@@ -218,12 +218,12 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 			"provisioning",
 		},
 		Refresh: func() (interface{}, string, error) {
-			c, ok := m.(*rhoasClients.Clients)
+			api, ok := m.(rhoasAPI.API)
 			if !ok {
 				return nil, "", errors.Errorf("unable to cast %v to *rhoasClients.Clients", m)
 			}
 
-			data, resp, err1 := c.KafkaClient.DefaultApi.GetKafkaById(ctx, kr.Id).Execute()
+			data, resp, err1 := api.KafkaMgmt().GetKafkaById(ctx, kr.Id).Execute()
 			if err1 != nil {
 				apiError, err2 := utils.GetAPIError(resp, err1)
 				if err2 != nil {

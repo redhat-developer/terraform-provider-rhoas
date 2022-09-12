@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
 	serviceAccounts "github.com/redhat-developer/app-services-sdk-go/serviceaccountmgmt/apiv1/client"
-	rhoasClients "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/clients"
+	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 	"time"
 )
@@ -57,12 +57,12 @@ func serviceAccountDelete(ctx context.Context, d *schema.ResourceData, m interfa
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	c, ok := m.(*rhoasClients.Clients)
+	api, ok := m.(rhoasAPI.API)
 	if !ok {
 		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
 	}
 
-	resp, err := c.ServiceAccountClient.ServiceAccountsApi.DeleteServiceAccount(ctx, d.Id()).Execute()
+	resp, err := api.ServiceAccountMgmt().DeleteServiceAccount(ctx, d.Id()).Execute()
 	if err != nil {
 		apiError, err1 := utils.GetAPIError(resp, err)
 		if err1 != nil {
@@ -80,14 +80,14 @@ func serviceAccountRead(ctx context.Context, d *schema.ResourceData, m interface
 
 	var diags diag.Diagnostics
 
-	c, ok := m.(*rhoasClients.Clients)
+	api, ok := m.(rhoasAPI.API)
 	if !ok {
 		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
 	}
 
 	// the resource data ID field is the same as the service account id which is set when the
 	// service account is created
-	serviceAccount, resp, err := c.ServiceAccountClient.ServiceAccountsApi.GetServiceAccount(ctx, d.Id()).Execute()
+	serviceAccount, resp, err := api.ServiceAccountMgmt().GetServiceAccount(ctx, d.Id()).Execute()
 	if err != nil {
 		apiError, err1 := utils.GetAPIError(resp, err)
 		if err1 != nil {
@@ -114,7 +114,7 @@ func serviceAccountCreate(ctx context.Context, d *schema.ResourceData, m interfa
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	c, ok := m.(*rhoasClients.Clients)
+	api, ok := m.(rhoasAPI.API)
 	if !ok {
 		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
 	}
@@ -124,7 +124,7 @@ func serviceAccountCreate(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.FromErr(err)
 	}
 
-	srr, resp, err := c.ServiceAccountClient.ServiceAccountsApi.CreateServiceAccount(ctx).ServiceAccountCreateRequestData(*request).Execute()
+	srr, resp, err := api.ServiceAccountMgmt().CreateServiceAccount(ctx).ServiceAccountCreateRequestData(*request).Execute()
 	if err != nil {
 		apiError, err1 := utils.GetAPIError(resp, err)
 		if err1 != nil {
