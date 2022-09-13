@@ -12,6 +12,7 @@ import (
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/cloudproviders"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/kafkas"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/serviceaccounts"
+	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/topics"
 )
 
 const (
@@ -49,6 +50,7 @@ func Provider() *schema.Provider {
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"rhoas_kafka":           kafkas.ResourceKafka(),
+			"rhoas_topic":           topics.ResourceTopic(),
 			"rhoas_service_account": serviceaccounts.ResourceServiceAccount(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{

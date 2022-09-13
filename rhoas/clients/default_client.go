@@ -48,7 +48,7 @@ func (c *DefaultClient) ServiceAccountMgmt() serviceAccounts.ServiceAccountsApi 
 func (c *DefaultClient) KafkaAdmin(ctx *context.Context, instanceID string) (*kafkainstanceclient.APIClient, *kafkamgmtclient.KafkaRequest, error) {
 	kafkaAPI := c.KafkaMgmt()
 
-	kafkaInstance, resp, err := kafkaAPI.GetKafkaById(context.Background(), instanceID).Execute()
+	kafkaInstance, resp, err := kafkaAPI.GetKafkaById(*ctx, instanceID).Execute()
 	if resp != nil {
 		defer resp.Body.Close()
 	}
@@ -91,6 +91,6 @@ func (c *DefaultClient) KafkaAdmin(ctx *context.Context, instanceID string) (*ka
 	return client, &kafkaInstance, nil
 }
 
-func (c *DefaultClient) HttpClient() *http.Client {
+func (c *DefaultClient) HTTPClient() *http.Client {
 	return c.httpClient
 }

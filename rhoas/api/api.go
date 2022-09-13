@@ -12,5 +12,5 @@ type API interface {
 	KafkaMgmt() kafkamgmtclient.DefaultApi
 	ServiceAccountMgmt() serviceAccounts.ServiceAccountsApi
 	KafkaAdmin(ctx *context.Context, instanceID string) (*kafkainstanceclient.APIClient, *kafkamgmtclient.KafkaRequest, error)
-	HttpClient() *http.Client
+	HTTPClient() *http.Client
 }
