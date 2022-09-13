@@ -3,8 +3,6 @@ package serviceaccounts
 import (
 	"context"
 	"github.com/pkg/errors"
-	"io/ioutil"
-	"log"
 	rhoasClients "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/clients"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -76,12 +74,14 @@ func dataSourceServiceAccountRead(ctx context.Context, d *schema.ResourceData, m
 
 	serviceAccount, resp, err := c.ServiceAccountClient.ServiceAccountsApi.GetServiceAccount(ctx, id).Execute()
 	if err != nil {
-		bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
-		if ioErr != nil {
-			log.Fatal(ioErr)
+		apiError, err1 := utils.GetAPIError(resp, err)
+		if err1 != nil {
+			return diag.FromErr(err1)
 		}
-		return diag.Errorf("%s%s", err.Error(), string(bodyBytes))
+
+		return diag.FromErr(apiError)
 	}
+
 	serviceAccountData, err := utils.AsMap(serviceAccount)
 	if err != nil {
 		return diag.FromErr(errors.WithStack(err))

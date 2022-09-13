@@ -6,8 +6,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
 	serviceAccounts "github.com/redhat-developer/app-services-sdk-go/serviceaccountmgmt/apiv1/client"
-	"io/ioutil"
-	"log"
 	rhoasClients "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/clients"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 	"time"
@@ -65,17 +63,13 @@ func serviceAccountDelete(ctx context.Context, d *schema.ResourceData, m interfa
 	}
 
 	resp, err := c.ServiceAccountClient.ServiceAccountsApi.DeleteServiceAccount(ctx, d.Id()).Execute()
-	if err != nil && err.Error() == "404 " {
-		// the resource is deleted already
-		d.SetId("")
-		return diags
-	}
 	if err != nil {
-		bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
-		if ioErr != nil {
-			log.Fatal(ioErr)
+		apiError, err1 := utils.GetAPIError(resp, err)
+		if err1 != nil {
+			return diag.FromErr(err1)
 		}
-		return diag.Errorf("%s%s", err.Error(), string(bodyBytes))
+
+		return diag.FromErr(apiError)
 	}
 
 	d.SetId("")
@@ -94,21 +88,13 @@ func serviceAccountRead(ctx context.Context, d *schema.ResourceData, m interface
 	// the resource data ID field is the same as the service account id which is set when the
 	// service account is created
 	serviceAccount, resp, err := c.ServiceAccountClient.ServiceAccountsApi.GetServiceAccount(ctx, d.Id()).Execute()
-	if err != nil && err.Error() == "404 Not Found" {
-		d.SetId("")
-		return diags
-	}
-
 	if err != nil {
-		bodyBytes := []byte("empty response")
-		if resp != nil {
-			var ioErr error
-			bodyBytes, ioErr = ioutil.ReadAll(resp.Body)
-			if ioErr != nil {
-				log.Fatal(ioErr)
-			}
+		apiError, err1 := utils.GetAPIError(resp, err)
+		if err1 != nil {
+			return diag.FromErr(err1)
 		}
-		return diag.Errorf("%s %s", err.Error(), string(bodyBytes))
+
+		return diag.FromErr(apiError)
 	}
 
 	serviceAccountData, err := utils.AsMap(serviceAccount)
@@ -140,11 +126,12 @@ func serviceAccountCreate(ctx context.Context, d *schema.ResourceData, m interfa
 
 	srr, resp, err := c.ServiceAccountClient.ServiceAccountsApi.CreateServiceAccount(ctx).ServiceAccountCreateRequestData(*request).Execute()
 	if err != nil {
-		bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
-		if ioErr != nil {
-			log.Fatal(ioErr)
+		apiError, err1 := utils.GetAPIError(resp, err)
+		if err1 != nil {
+			return diag.FromErr(err1)
 		}
-		return diag.Errorf("%s%s", err.Error(), string(bodyBytes))
+
+		return diag.FromErr(apiError)
 	}
 
 	d.SetId(srr.GetId())
