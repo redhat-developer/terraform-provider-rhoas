@@ -12,6 +12,7 @@ import (
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/cloudproviders"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/kafkas"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/serviceaccounts"
+	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/topics"
 )
 
 const (
@@ -49,6 +50,7 @@ func Provider() *schema.Provider {
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"rhoas_kafka":           kafkas.ResourceKafka(),
+			"rhoas_topic":           topics.ResourceTopic(),
 			"rhoas_service_account": serviceaccounts.ResourceServiceAccount(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
@@ -77,10 +79,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 
 	// package both service account client and kafka client together to be used in the provider
 	// these are passed to each action we do and can be use to CRUD kafkas/serviceAccounts
-	clients := &rhoasClients.Clients{
-		KafkaClient:          kafkaClient,
-		ServiceAccountClient: serviceAccountClient,
-	}
+	client := rhoasClients.NewDefaultClient(kafkaClient, serviceAccountClient, httpClient)
 
-	return clients, diags
+	return client, diags
 }

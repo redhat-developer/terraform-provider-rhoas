@@ -4,8 +4,7 @@ import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/pkg/errors"
-	rhoasClients "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/clients"
+	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 )
 
@@ -92,9 +91,9 @@ func dataSourceKafkaRead(ctx context.Context, d *schema.ResourceData, m interfac
 
 	var diags diag.Diagnostics
 
-	c, ok := m.(*rhoasClients.Clients)
+	api, ok := m.(rhoasAPI.Clients)
 	if !ok {
-		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Clients)", m)
 	}
 
 	val := d.Get("id")
@@ -103,7 +102,7 @@ func dataSourceKafkaRead(ctx context.Context, d *schema.ResourceData, m interfac
 		return diag.Errorf("unable to cast %v to string for use as for kafka id", val)
 	}
 
-	kafka, resp, err := c.KafkaClient.DefaultApi.GetKafkaById(ctx, id).Execute()
+	kafka, resp, err := api.KafkaMgmt().GetKafkaById(ctx, id).Execute()
 	if err != nil {
 		apiError, err1 := utils.GetAPIError(resp, err)
 		if err1 != nil {
@@ -112,12 +111,8 @@ func dataSourceKafkaRead(ctx context.Context, d *schema.ResourceData, m interfac
 
 		return diag.FromErr(apiError)
 	}
-	kafkaData, err := utils.AsMap(kafka)
-	if err != nil {
-		return diag.FromErr(errors.WithStack(err))
-	}
 
-	err = setResourceDataFromKafkaData(d, &kafkaData)
+	err = setResourceDataFromKafkaData(d, &kafka)
 	if err != nil {
 		return diag.FromErr(err)
 	}

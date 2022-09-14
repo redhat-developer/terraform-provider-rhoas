@@ -4,7 +4,7 @@ import (
 	"context"
 	"io/ioutil"
 	"log"
-	rhoasClients "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/clients"
+	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
 	"strconv"
 	"time"
 
@@ -45,7 +45,7 @@ func DataSourceServiceAccounts() *schema.Resource {
 						"kind": {
 							Type:        schema.TypeString,
 							Computed:    true,
-							Description: "The kind of resource in the API",
+							Description: "The kind of resource in the Clients",
 						},
 						"name": {
 							Description: "The name of the service account",
@@ -73,12 +73,12 @@ func dataSourceKafkasRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 	var diags diag.Diagnostics
 
-	c, ok := m.(*rhoasClients.Clients)
+	api, ok := m.(rhoasAPI.Clients)
 	if !ok {
 		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
 	}
 
-	data, resp, err := c.ServiceAccountClient.ServiceAccountsApi.GetServiceAccounts(ctx).Execute()
+	data, resp, err := api.ServiceAccountMgmt().GetServiceAccounts(ctx).Execute()
 	if err != nil {
 		bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
 		if ioErr != nil {

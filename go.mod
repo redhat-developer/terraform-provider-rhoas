@@ -6,6 +6,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/redhat-developer/app-services-sdk-go v0.11.0 // indirect
 	github.com/redhat-developer/app-services-sdk-go/auth v0.1.0
+	github.com/redhat-developer/app-services-sdk-go/kafkainstance v0.9.0
 	github.com/redhat-developer/app-services-sdk-go/kafkamgmt v0.13.0
 	github.com/redhat-developer/app-services-sdk-go/serviceaccountmgmt v0.9.0
 

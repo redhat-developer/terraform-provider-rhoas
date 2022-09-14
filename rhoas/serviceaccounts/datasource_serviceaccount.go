@@ -2,11 +2,9 @@ package serviceaccounts
 
 import (
 	"context"
-	"github.com/pkg/errors"
-	rhoasClients "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/clients"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 )
 
@@ -61,9 +59,9 @@ func DataSourceServiceAccount() *schema.Resource {
 func dataSourceServiceAccountRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	c, ok := m.(*rhoasClients.Clients)
+	api, ok := m.(rhoasAPI.Clients)
 	if !ok {
-		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Clients)", m)
 	}
 
 	val := d.Get("id")
@@ -72,7 +70,7 @@ func dataSourceServiceAccountRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.Errorf("unable to cast %v to string for use as for service account id", val)
 	}
 
-	serviceAccount, resp, err := c.ServiceAccountClient.ServiceAccountsApi.GetServiceAccount(ctx, id).Execute()
+	serviceAccount, resp, err := api.ServiceAccountMgmt().GetServiceAccount(ctx, id).Execute()
 	if err != nil {
 		apiError, err1 := utils.GetAPIError(resp, err)
 		if err1 != nil {
@@ -82,12 +80,7 @@ func dataSourceServiceAccountRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(apiError)
 	}
 
-	serviceAccountData, err := utils.AsMap(serviceAccount)
-	if err != nil {
-		return diag.FromErr(errors.WithStack(err))
-	}
-
-	err = setResourceDataFromServiceAccountData(d, &serviceAccountData)
+	err = setResourceDataFromServiceAccountData(d, &serviceAccount)
 	if err != nil {
 		return diag.FromErr(err)
 	}

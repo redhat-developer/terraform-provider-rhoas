@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
 	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
-	rhoasClients "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/clients"
+	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 	"time"
 )
@@ -95,12 +95,12 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	c, ok := m.(*rhoasClients.Clients)
+	api, ok := m.(rhoasAPI.Clients)
 	if !ok {
-		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Clients)", m)
 	}
 
-	apiErr, _, err := c.KafkaClient.DefaultApi.DeleteKafkaById(ctx, d.Id()).Async(true).Execute()
+	apiErr, _, err := api.KafkaMgmt().DeleteKafkaById(ctx, d.Id()).Async(true).Execute()
 	if err != nil && err.Error() == "404 " {
 		// the resource is deleted already
 		d.SetId("")
@@ -119,7 +119,7 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 			"deprovision", "deleting",
 		},
 		Refresh: func() (interface{}, string, error) {
-			data, resp, err1 := c.KafkaClient.DefaultApi.GetKafkaById(ctx, d.Id()).Execute()
+			data, resp, err1 := api.KafkaMgmt().GetKafkaById(ctx, d.Id()).Execute()
 			if err1 != nil {
 				apiError, err2 := utils.GetAPIError(resp, err1)
 				if err2 != nil {
@@ -152,12 +152,12 @@ func kafkaRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 
 	var diags diag.Diagnostics
 
-	c, ok := m.(*rhoasClients.Clients)
+	api, ok := m.(rhoasAPI.Clients)
 	if !ok {
-		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Clients)", m)
 	}
 
-	kafka, resp, err := c.KafkaClient.DefaultApi.GetKafkaById(ctx, d.Id()).Execute()
+	kafka, resp, err := api.KafkaMgmt().GetKafkaById(ctx, d.Id()).Execute()
 	if err != nil {
 		apiError, err1 := utils.GetAPIError(resp, err)
 		if err1 != nil {
@@ -167,12 +167,7 @@ func kafkaRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 		return diag.FromErr(apiError)
 	}
 
-	kafkaData, err := utils.AsMap(kafka)
-	if err != nil {
-		return diag.FromErr(errors.WithStack(err))
-	}
-
-	err = setResourceDataFromKafkaData(d, &kafkaData)
+	err = setResourceDataFromKafkaData(d, &kafka)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -184,9 +179,9 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	c, ok := m.(*rhoasClients.Clients)
+	api, ok := m.(rhoasAPI.Clients)
 	if !ok {
-		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Clients)", m)
 	}
 
 	requestPayload, err := mapResourceDataToKafkaPayload(d)
@@ -194,7 +189,7 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		return diag.FromErr(err)
 	}
 
-	kr, resp, err := c.KafkaClient.DefaultApi.CreateKafka(ctx).Async(true).KafkaRequestPayload(*requestPayload).Execute()
+	kr, resp, err := api.KafkaMgmt().CreateKafka(ctx).Async(true).KafkaRequestPayload(*requestPayload).Execute()
 	if err != nil {
 		apiError, err1 := utils.GetAPIError(resp, err)
 		if err1 != nil {
@@ -218,12 +213,12 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 			"provisioning",
 		},
 		Refresh: func() (interface{}, string, error) {
-			c, ok := m.(*rhoasClients.Clients)
+			api, ok := m.(rhoasAPI.Clients)
 			if !ok {
-				return nil, "", errors.Errorf("unable to cast %v to *rhoasClients.Clients", m)
+				return nil, "", errors.Errorf("unable to cast %v to rhoasAPI.Clients)", m)
 			}
 
-			data, resp, err1 := c.KafkaClient.DefaultApi.GetKafkaById(ctx, kr.Id).Execute()
+			kafka, resp, err1 := api.KafkaMgmt().GetKafkaById(ctx, kr.Id).Execute()
 			if err1 != nil {
 				apiError, err2 := utils.GetAPIError(resp, err1)
 				if err2 != nil {
@@ -232,13 +227,8 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 
 				return nil, "", apiError
 			}
-			obj, err1 := utils.AsMap(data)
-			if err1 != nil {
-				return nil, "", errors.WithStack(err1)
-			}
-			// raw := []map[string]interface{}{obj}
 
-			return obj, *data.Status, nil
+			return kafka, kafka.GetStatus(), nil
 		},
 		Target: []string{
 			"ready",
@@ -254,12 +244,12 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		return diag.FromErr(errors.Wrapf(err, "Error waiting for instance (%s) to be created", d.Id()))
 	}
 
-	kafkaData, castOk := data.(map[string]interface{})
+	kafka, castOk := data.(kafkamgmtclient.KafkaRequest)
 	if !castOk {
 		return diag.Errorf("Cannot cast data from kafka creation to to map[string]interface{}")
 	}
 
-	err = setResourceDataFromKafkaData(d, &kafkaData)
+	err = setResourceDataFromKafkaData(d, &kafka)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -267,54 +257,54 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	return diags
 }
 
-func setResourceDataFromKafkaData(d *schema.ResourceData, kafkaData *map[string]interface{}) error {
+func setResourceDataFromKafkaData(d *schema.ResourceData, kafka *kafkamgmtclient.KafkaRequest) error {
 	var err error
 
-	if err = d.Set("cloud_provider", (*kafkaData)["cloud_provider"]); err != nil {
+	if err = d.Set("cloud_provider", kafka.GetCloudProvider()); err != nil {
 		return err
 	}
 
-	if err = d.Set("region", (*kafkaData)["region"]); err != nil {
+	if err = d.Set("region", kafka.GetRegion()); err != nil {
 		return err
 	}
 
-	if err = d.Set("name", (*kafkaData)["name"]); err != nil {
+	if err = d.Set("name", kafka.GetName()); err != nil {
 		return err
 	}
 
-	if err = d.Set("href", (*kafkaData)["href"]); err != nil {
+	if err = d.Set("href", kafka.GetHref()); err != nil {
 		return err
 	}
 
-	if err = d.Set("status", (*kafkaData)["status"]); err != nil {
+	if err = d.Set("status", kafka.GetStatus()); err != nil {
 		return err
 	}
 
-	if err = d.Set("owner", (*kafkaData)["owner"]); err != nil {
+	if err = d.Set("owner", kafka.GetOwner()); err != nil {
 		return err
 	}
 
-	if err = d.Set("bootstrap_server_host", (*kafkaData)["bootstrap_server_host"]); err != nil {
+	if err = d.Set("bootstrap_server_host", kafka.GetBootstrapServerHost()); err != nil {
 		return err
 	}
 
-	if err = d.Set("created_at", (*kafkaData)["created_at"]); err != nil {
+	if err = d.Set("created_at", kafka.GetCreatedAt().Format(time.RFC3339)); err != nil {
 		return err
 	}
 
-	if err = d.Set("updated_at", (*kafkaData)["updated_at"]); err != nil {
+	if err = d.Set("updated_at", kafka.GetUpdatedAt().Format(time.RFC3339)); err != nil {
 		return err
 	}
 
-	if err = d.Set("id", (*kafkaData)["id"]); err != nil {
+	if err = d.Set("id", kafka.GetId()); err != nil {
 		return err
 	}
 
-	if err = d.Set("kind", (*kafkaData)["kind"]); err != nil {
+	if err = d.Set("kind", kafka.GetKind()); err != nil {
 		return err
 	}
 
-	if err = d.Set("version", (*kafkaData)["version"]); err != nil {
+	if err = d.Set("version", kafka.GetVersion()); err != nil {
 		return err
 	}
 
