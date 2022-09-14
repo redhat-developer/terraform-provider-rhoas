@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-type API interface {
+type Clients interface {
 	KafkaMgmt() kafkamgmtclient.DefaultApi
 	ServiceAccountMgmt() svcacctmgmtclient.ServiceAccountsApi
 	KafkaAdmin(ctx *context.Context, instanceID string) (*kafkainstanceclient.APIClient, *kafkamgmtclient.KafkaRequest, error)

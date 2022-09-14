@@ -28,7 +28,7 @@ func ResourceTopic() *schema.Resource {
 				ForceNew:    true,
 			},
 			"partitions": {
-				Description: "The number of partition in the topic",
+				Description: "The number of partitions in the topic",
 				Type:        schema.TypeInt,
 				Required:    true,
 				ForceNew:    true,
@@ -47,9 +47,9 @@ func topicDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.API)
+	api, ok := m.(rhoasAPI.Clients)
 	if !ok {
-		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Clients", m)
 	}
 
 	kafkaID, ok := d.Get("kafka_id").(string)
@@ -85,9 +85,9 @@ func topicRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.API)
+	api, ok := m.(rhoasAPI.Clients)
 	if !ok {
-		return diag.Errorf("unable to cast %v to *rhoasAPI.API", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Clients", m)
 	}
 
 	kafkaID, ok := d.Get("kafka_id").(string)
@@ -127,9 +127,9 @@ func topicCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.API)
+	api, ok := m.(rhoasAPI.Clients)
 	if !ok {
-		return diag.Errorf("unable to cast %v to *rhoasAPI.API", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Clients", m)
 	}
 
 	kafkaID, ok := d.Get("kafka_id").(string)

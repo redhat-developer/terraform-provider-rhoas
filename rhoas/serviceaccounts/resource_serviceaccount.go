@@ -52,9 +52,9 @@ func serviceAccountDelete(ctx context.Context, d *schema.ResourceData, m interfa
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.API)
+	api, ok := m.(rhoasAPI.Clients)
 	if !ok {
-		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Clients", m)
 	}
 
 	resp, err := api.ServiceAccountMgmt().DeleteServiceAccount(ctx, d.Id()).Execute()
@@ -75,9 +75,9 @@ func serviceAccountRead(ctx context.Context, d *schema.ResourceData, m interface
 
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.API)
+	api, ok := m.(rhoasAPI.Clients)
 	if !ok {
-		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Clients)", m)
 	}
 
 	// the resource data ID field is the same as the service account id which is set when the
@@ -104,9 +104,9 @@ func serviceAccountCreate(ctx context.Context, d *schema.ResourceData, m interfa
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.API)
+	api, ok := m.(rhoasAPI.Clients)
 	if !ok {
-		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Clients)", m)
 	}
 
 	request, err := mapResourceDataToServiceAccountCreateRequest(d)

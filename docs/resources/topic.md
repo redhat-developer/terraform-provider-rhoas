@@ -19,7 +19,7 @@ description: |-
 
 - `kafka_id` (String) The unique ID of the kafka instance this topic is associated with
 - `name` (String) The name of the Kafka instance
-- `partitions` (Number) The number of partition in the topic
+- `partitions` (Number) The number of partitions in the topic
 
 ### Optional
 

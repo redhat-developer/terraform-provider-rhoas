@@ -59,9 +59,9 @@ func DataSourceServiceAccount() *schema.Resource {
 func dataSourceServiceAccountRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.API)
+	api, ok := m.(rhoasAPI.Clients)
 	if !ok {
-		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Clients)", m)
 	}
 
 	val := d.Get("id")
