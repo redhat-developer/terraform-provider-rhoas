@@ -6,9 +6,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
 	kafkainstanceclient "github.com/redhat-developer/app-services-sdk-go/kafkainstance/apiv1/client"
-	"io/ioutil"
-	"log"
 	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
+	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 	"time"
 )
 
@@ -68,17 +67,14 @@ func topicDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		return diag.FromErr(err)
 	}
 
-	resp, err := instanceAPI.TopicsApi.DeleteTopic(ctx, topicName).Execute()
-	if err != nil {
-		bodyBytes := []byte("empty response")
-		if resp != nil {
-			var ioErr error
-			bodyBytes, ioErr = ioutil.ReadAll(resp.Body)
-			if ioErr != nil {
-				log.Fatal(ioErr)
-			}
+	resp, err1 := instanceAPI.TopicsApi.DeleteTopic(ctx, topicName).Execute()
+	if err1 != nil {
+		apiError, err2 := utils.GetAPIError(resp, err1)
+		if err2 != nil {
+			return diag.FromErr(err2)
 		}
-		return diag.Errorf("%s %s", err.Error(), string(bodyBytes))
+
+		return diag.FromErr(apiError)
 	}
 
 	d.SetId("")
@@ -109,17 +105,14 @@ func topicRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 		return diag.FromErr(err)
 	}
 
-	topic, resp, err := instanceAPI.TopicsApi.GetTopic(ctx, topicName).Execute()
-	if err != nil {
-		bodyBytes := []byte("empty response")
-		if resp != nil {
-			var ioErr error
-			bodyBytes, ioErr = ioutil.ReadAll(resp.Body)
-			if ioErr != nil {
-				log.Fatal(ioErr)
-			}
+	topic, resp, err1 := instanceAPI.TopicsApi.GetTopic(ctx, topicName).Execute()
+	if err1 != nil {
+		apiError, err2 := utils.GetAPIError(resp, err1)
+		if err2 != nil {
+			return diag.FromErr(err2)
 		}
-		return diag.Errorf("%s %s", err.Error(), string(bodyBytes))
+
+		return diag.FromErr(apiError)
 	}
 
 	err = setResourceDataFromTopic(d, &topic)
@@ -156,17 +149,14 @@ func topicCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		return diag.FromErr(err)
 	}
 
-	topic, resp, err := topicRequest.Execute()
-	if err != nil {
-		bodyBytes := []byte("empty response")
-		if resp != nil {
-			var ioErr error
-			bodyBytes, ioErr = ioutil.ReadAll(resp.Body)
-			if ioErr != nil {
-				log.Fatal(ioErr)
-			}
+	topic, resp, err1 := topicRequest.Execute()
+	if err1 != nil {
+		apiError, err2 := utils.GetAPIError(resp, err1)
+		if err2 != nil {
+			return diag.FromErr(err2)
 		}
-		return diag.Errorf("%s%s", err.Error(), string(bodyBytes))
+
+		return diag.FromErr(apiError)
 	}
 
 	err = setResourceDataFromTopic(d, &topic)
