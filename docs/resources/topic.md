@@ -3,12 +3,12 @@
 page_title: "rhoas_topic Resource - terraform-provider-rhoas"
 subcategory: ""
 description: |-
-  rhoas_topic manages a topic from a  Kafka instance in Red Hat OpenShift Streams for Apache Kafka.
+  rhoas_topic manages a topic in a  Kafka instance in Red Hat OpenShift Streams for Apache Kafka.
 ---
 
 # rhoas_topic (Resource)
 
-`rhoas_topic` manages a topic from a  Kafka instance in Red Hat OpenShift Streams for Apache Kafka.
+`rhoas_topic` manages a topic in a  Kafka instance in Red Hat OpenShift Streams for Apache Kafka.
 
 
 
@@ -17,7 +17,7 @@ description: |-
 
 ### Required
 
-- `kafka_id` (String) The number of partition in the topic
+- `kafka_id` (String) The unique ID of the kafka instance this topic is associated with
 - `name` (String) The name of the Kafka instance
 - `partitions` (Number) The number of partition in the topic
 

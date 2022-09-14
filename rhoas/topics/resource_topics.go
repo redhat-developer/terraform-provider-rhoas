@@ -13,7 +13,7 @@ import (
 
 func ResourceTopic() *schema.Resource {
 	return &schema.Resource{
-		Description:   "`rhoas_topic` manages a topic from a  Kafka instance in Red Hat OpenShift Streams for Apache Kafka.",
+		Description:   "`rhoas_topic` manages a topic in a  Kafka instance in Red Hat OpenShift Streams for Apache Kafka.",
 		CreateContext: topicCreate,
 		ReadContext:   topicRead,
 		DeleteContext: topicDelete,
@@ -34,7 +34,7 @@ func ResourceTopic() *schema.Resource {
 				ForceNew:    true,
 			},
 			"kafka_id": {
-				Description: "The number of partition in the topic",
+				Description: "The unique ID of the kafka instance this topic is associated with",
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
