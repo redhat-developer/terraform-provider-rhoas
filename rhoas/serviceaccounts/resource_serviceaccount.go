@@ -6,8 +6,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
 	serviceAccounts "github.com/redhat-developer/app-services-sdk-go/serviceaccountmgmt/apiv1/client"
-	"io/ioutil"
-	"log"
 	rhoasClients "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/clients"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 	"time"
@@ -20,43 +18,33 @@ func ResourceServiceAccount() *schema.Resource {
 		ReadContext:   serviceAccountRead,
 		DeleteContext: serviceAccountDelete,
 		Schema: map[string]*schema.Schema{
-			"service_account": {
-				Type:     schema.TypeList,
-				MaxItems: 1,
-				Required: true,
-				ForceNew: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"description": {
-							Description: "A description of the service account",
-							Type:        schema.TypeString,
-							Optional:    true,
-							Default:     "",
-							ForceNew:    true,
-						},
-						"name": {
-							Description: "The name of the service account",
-							Type:        schema.TypeString,
-							Required:    true,
-							ForceNew:    true,
-						},
-						"client_id": {
-							Description: "The client id associated with the service account",
-							Type:        schema.TypeString,
-							Computed:    true,
-						},
-						"owner": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The username of the Red Hat account that owns the service account",
-						},
-						"client_secret": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The client secret associated with the service account. It must be stored by the client as the server will not return it after creation",
-						},
-					},
-				},
+			"description": {
+				Description: "A description of the service account",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "",
+				ForceNew:    true,
+			},
+			"name": {
+				Description: "The name of the service account",
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
+			},
+			"client_id": {
+				Description: "The client id associated with the service account",
+				Type:        schema.TypeString,
+				Computed:    true,
+			},
+			"owner": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The username of the Red Hat account that owns the service account",
+			},
+			"client_secret": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The client secret associated with the service account. It must be stored by the client as the server will not return it after creation",
 			},
 		},
 		Timeouts: &schema.ResourceTimeout{
@@ -75,17 +63,13 @@ func serviceAccountDelete(ctx context.Context, d *schema.ResourceData, m interfa
 	}
 
 	resp, err := c.ServiceAccountClient.ServiceAccountsApi.DeleteServiceAccount(ctx, d.Id()).Execute()
-	if err != nil && err.Error() == "404 " {
-		// the resource is deleted already
-		d.SetId("")
-		return diags
-	}
 	if err != nil {
-		bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
-		if ioErr != nil {
-			log.Fatal(ioErr)
+		apiError, err1 := utils.GetAPIError(resp, err)
+		if err1 != nil {
+			return diag.FromErr(err1)
 		}
-		return diag.Errorf("%s%s", err.Error(), string(bodyBytes))
+
+		return diag.FromErr(apiError)
 	}
 
 	d.SetId("")
@@ -101,71 +85,29 @@ func serviceAccountRead(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
 	}
 
-	var raw []map[string]interface{}
-
-	// Store the existing client id
-	existingServiceAccounts := d.Get("service_account")
-	var existingClientSecret *string
-	if existingServiceAccounts != nil {
-		d, ok := existingServiceAccounts.([]interface{})
-		if !ok {
-			return diag.Errorf("unable to cast %v to []interface{}", existingServiceAccounts)
-		}
-		if len(d) == 1 {
-			e := d[0].(map[string]interface{})["client_secret"]
-			if e != nil {
-				f, ok := e.(string)
-				if !ok {
-					return diag.Errorf("unable to cast %v to string", e)
-				}
-				existingClientSecret = &f
-			}
-		}
-	}
-
+	// the resource data ID field is the same as the service account id which is set when the
+	// service account is created
 	serviceAccount, resp, err := c.ServiceAccountClient.ServiceAccountsApi.GetServiceAccount(ctx, d.Id()).Execute()
-	if err != nil && err.Error() == "404 Not Found" {
-		d.SetId("")
-		return diags
-	}
-
 	if err != nil {
-		bodyBytes := []byte("empty response")
-		if resp != nil {
-			var ioErr error
-			bodyBytes, ioErr = ioutil.ReadAll(resp.Body)
-			if ioErr != nil {
-				log.Fatal(ioErr)
-			}
+		apiError, err1 := utils.GetAPIError(resp, err)
+		if err1 != nil {
+			return diag.FromErr(err1)
 		}
-		return diag.Errorf("%s %s", err.Error(), string(bodyBytes))
+
+		return diag.FromErr(apiError)
 	}
 
-	obj, err := utils.AsMap(serviceAccount)
+	serviceAccountData, err := utils.AsMap(serviceAccount)
 	if err != nil {
 		return diag.FromErr(errors.WithStack(err))
 	}
-	raw = []map[string]interface{}{obj}
 
-	items := fixClientIDAndClientSecret(raw, existingClientSecret)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	err = applyRead(items, d)
+	err = setResourceDataFromServiceAccountData(d, &serviceAccountData)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	return diags
-}
-
-func applyRead(items []map[string]interface{}, d *schema.ResourceData) error {
-	filter := []string{"name", "description", "client_id", "owner", "client_secret"}
-	filtered := utils.Filter(items, filter)
-	if err := d.Set("service_account", filtered); err != nil {
-		return err
-	}
-	return nil
 }
 
 func serviceAccountCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -177,72 +119,75 @@ func serviceAccountCreate(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
 	}
 
-	val := d.Get("service_account")
-	items, ok := val.([]interface{})
-	if !ok {
-		return diag.Errorf("unable to cast %v to []interface{}", val)
-	}
-
-	payload := make([]serviceAccounts.ServiceAccountCreateRequestData, 0)
-	for _, item := range items {
-		serviceAccount, ok := item.(map[string]interface{})
-		if !ok {
-			return diag.Errorf("unable to cast %v to map[string]interface{}", item)
-		}
-
-		description, ok := serviceAccount["description"].(string)
-		if !ok {
-			return diag.Errorf("unable to cast %v to string", serviceAccount["description"])
-		}
-		name, ok := serviceAccount["name"].(string)
-		if !ok {
-			return diag.Errorf("unable to cast %v to string", serviceAccount["name"])
-		}
-
-		payload = append(payload, serviceAccounts.ServiceAccountCreateRequestData{
-			Description: &description,
-			Name:        name,
-		})
-	}
-	srr, resp, err := c.ServiceAccountClient.ServiceAccountsApi.CreateServiceAccount(ctx).ServiceAccountCreateRequestData(payload[0]).Execute()
+	request, err := mapResourceDataToServiceAccountCreateRequest(d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	_, err = ioutil.ReadAll(resp.Body)
+	srr, resp, err := c.ServiceAccountClient.ServiceAccountsApi.CreateServiceAccount(ctx).ServiceAccountCreateRequestData(*request).Execute()
 	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	if err != nil {
-		bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
-		if ioErr != nil {
-			log.Fatal(ioErr)
+		apiError, err1 := utils.GetAPIError(resp, err)
+		if err1 != nil {
+			return diag.FromErr(err1)
 		}
-		return diag.Errorf("%s%s", err.Error(), string(bodyBytes))
-	}
 
-	if srr.GetId() == "" {
-		return diag.Errorf("no id provided")
+		return diag.FromErr(apiError)
 	}
 
 	d.SetId(srr.GetId())
 
-	obj, err := utils.AsMap(srr)
+	serviceAccountData, err := utils.AsMap(srr)
 	if err != nil {
 		return diag.FromErr(errors.WithStack(err))
 	}
-	raw := []map[string]interface{}{obj}
 
-	fixed := fixClientIDAndClientSecret(raw, nil)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	err = applyRead(fixed, d)
+	err = setResourceDataFromServiceAccountData(d, &serviceAccountData)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	return diags
+}
+
+func mapResourceDataToServiceAccountCreateRequest(d *schema.ResourceData) (*serviceAccounts.ServiceAccountCreateRequestData, error) {
+
+	// we only set these values from the resource data as all the rest are set as
+	// computed in the schema and for us the computed values are assigned when we
+	// get the create request object back from the API
+	description, ok := d.Get("description").(string)
+	if !ok {
+		return nil, errors.Errorf("There was a problem getting the description value in the schema resource")
+	}
+
+	name, ok := d.Get("name").(string)
+	if !ok {
+		return nil, errors.Errorf("There was a problem getting the name value in the schema resource")
+	}
+
+	request := serviceAccounts.NewServiceAccountCreateRequestData(name)
+	request.SetDescription(description)
+
+	return request, nil
+}
+
+func setResourceDataFromServiceAccountData(d *schema.ResourceData, serviceAccountData *map[string]interface{}) error {
+	var err error
+
+	if err = d.Set("client_id", (*serviceAccountData)["client_id"]); err != nil {
+		return err
+	}
+
+	if err = d.Set("description", (*serviceAccountData)["description"]); err != nil {
+		return err
+	}
+
+	if err = d.Set("name", (*serviceAccountData)["name"]); err != nil {
+		return err
+	}
+
+	if err = d.Set("owner", (*serviceAccountData)["owner"]); err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -7,8 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
 	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
-	"io/ioutil"
-	"log"
 	rhoasClients "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/clients"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 	"time"
@@ -122,15 +120,13 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		},
 		Refresh: func() (interface{}, string, error) {
 			data, resp, err1 := c.KafkaClient.DefaultApi.GetKafkaById(ctx, d.Id()).Execute()
-			if err1 != nil && err1.Error() == "404 Not Found" {
-				return data, "404", nil
-			}
 			if err1 != nil {
-				bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
-				if ioErr != nil {
-					log.Fatal(ioErr)
+				apiError, err2 := utils.GetAPIError(resp, err1)
+				if err2 != nil {
+					return nil, "", err2
 				}
-				return nil, "", errors.Errorf("%s %s", err1.Error(), string(bodyBytes))
+
+				return nil, "", apiError
 			}
 			return data, *data.Status, nil
 		},
@@ -162,20 +158,13 @@ func kafkaRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 	}
 
 	kafka, resp, err := c.KafkaClient.DefaultApi.GetKafkaById(ctx, d.Id()).Execute()
-	if err != nil && err.Error() == "404 Not Found" {
-		d.SetId("")
-		return diags
-	}
 	if err != nil {
-		bodyBytes := []byte("empty response")
-		if resp != nil {
-			var ioErr error
-			bodyBytes, ioErr = ioutil.ReadAll(resp.Body)
-			if ioErr != nil {
-				log.Fatal(ioErr)
-			}
+		apiError, err1 := utils.GetAPIError(resp, err)
+		if err1 != nil {
+			return diag.FromErr(err1)
 		}
-		return diag.Errorf("%s %s", err.Error(), string(bodyBytes))
+
+		return diag.FromErr(apiError)
 	}
 
 	kafkaData, err := utils.AsMap(kafka)
@@ -206,17 +195,13 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	}
 
 	kr, resp, err := c.KafkaClient.DefaultApi.CreateKafka(ctx).Async(true).KafkaRequestPayload(*requestPayload).Execute()
-
 	if err != nil {
-		bodyBytes := []byte("empty response")
-		if resp != nil {
-			var ioErr error
-			bodyBytes, ioErr = ioutil.ReadAll(resp.Body)
-			if ioErr != nil {
-				log.Fatal(ioErr)
-			}
+		apiError, err1 := utils.GetAPIError(resp, err)
+		if err1 != nil {
+			return diag.FromErr(err1)
 		}
-		return diag.Errorf("%s%s", err.Error(), string(bodyBytes))
+
+		return diag.FromErr(apiError)
 	}
 
 	if kr.Id == "" {
@@ -240,11 +225,12 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 
 			data, resp, err1 := c.KafkaClient.DefaultApi.GetKafkaById(ctx, kr.Id).Execute()
 			if err1 != nil {
-				bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
-				if ioErr != nil {
-					log.Fatal(ioErr)
+				apiError, err2 := utils.GetAPIError(resp, err1)
+				if err2 != nil {
+					return nil, "", err2
 				}
-				return nil, "", errors.Errorf("%s%s", err1.Error(), string(bodyBytes))
+
+				return nil, "", apiError
 			}
 			obj, err1 := utils.AsMap(data)
 			if err1 != nil {
