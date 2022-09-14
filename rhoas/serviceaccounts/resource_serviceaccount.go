@@ -36,11 +36,6 @@ func ResourceServiceAccount() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
-			"owner": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The username of the Red Hat account that owns the service account",
-			},
 			"client_secret": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -97,12 +92,7 @@ func serviceAccountRead(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(apiError)
 	}
 
-	serviceAccountData, err := utils.AsMap(serviceAccount)
-	if err != nil {
-		return diag.FromErr(errors.WithStack(err))
-	}
-
-	err = setResourceDataFromServiceAccountData(d, &serviceAccountData)
+	err = setResourceDataFromServiceAccountData(d, &serviceAccount)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -124,7 +114,7 @@ func serviceAccountCreate(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.FromErr(err)
 	}
 
-	srr, resp, err := api.ServiceAccountMgmt().CreateServiceAccount(ctx).ServiceAccountCreateRequestData(*request).Execute()
+	serviceAccount, resp, err := api.ServiceAccountMgmt().CreateServiceAccount(ctx).ServiceAccountCreateRequestData(*request).Execute()
 	if err != nil {
 		apiError, err1 := utils.GetAPIError(resp, err)
 		if err1 != nil {
@@ -134,14 +124,9 @@ func serviceAccountCreate(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.FromErr(apiError)
 	}
 
-	d.SetId(srr.GetId())
+	d.SetId(serviceAccount.GetId())
 
-	serviceAccountData, err := utils.AsMap(srr)
-	if err != nil {
-		return diag.FromErr(errors.WithStack(err))
-	}
-
-	err = setResourceDataFromServiceAccountData(d, &serviceAccountData)
+	err = setResourceDataFromServiceAccountData(d, &serviceAccount)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -170,22 +155,18 @@ func mapResourceDataToServiceAccountCreateRequest(d *schema.ResourceData) (*serv
 	return request, nil
 }
 
-func setResourceDataFromServiceAccountData(d *schema.ResourceData, serviceAccountData *map[string]interface{}) error {
+func setResourceDataFromServiceAccountData(d *schema.ResourceData, serviceAccount *serviceAccounts.ServiceAccountData) error {
 	var err error
 
-	if err = d.Set("client_id", (*serviceAccountData)["client_id"]); err != nil {
+	if err = d.Set("client_id", serviceAccount.GetClientId()); err != nil {
 		return err
 	}
 
-	if err = d.Set("description", (*serviceAccountData)["description"]); err != nil {
+	if err = d.Set("description", serviceAccount.GetDescription()); err != nil {
 		return err
 	}
 
-	if err = d.Set("name", (*serviceAccountData)["name"]); err != nil {
-		return err
-	}
-
-	if err = d.Set("owner", (*serviceAccountData)["owner"]); err != nil {
+	if err = d.Set("name", serviceAccount.GetName()); err != nil {
 		return err
 	}
 

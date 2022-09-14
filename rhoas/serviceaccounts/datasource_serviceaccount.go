@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/pkg/errors"
 	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 )
@@ -81,12 +80,7 @@ func dataSourceServiceAccountRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(apiError)
 	}
 
-	serviceAccountData, err := utils.AsMap(serviceAccount)
-	if err != nil {
-		return diag.FromErr(errors.WithStack(err))
-	}
-
-	err = setResourceDataFromServiceAccountData(d, &serviceAccountData)
+	err = setResourceDataFromServiceAccountData(d, &serviceAccount)
 	if err != nil {
 		return diag.FromErr(err)
 	}

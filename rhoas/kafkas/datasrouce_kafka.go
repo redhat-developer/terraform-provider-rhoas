@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/pkg/errors"
 	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 )
@@ -112,12 +111,8 @@ func dataSourceKafkaRead(ctx context.Context, d *schema.ResourceData, m interfac
 
 		return diag.FromErr(apiError)
 	}
-	kafkaData, err := utils.AsMap(kafka)
-	if err != nil {
-		return diag.FromErr(errors.WithStack(err))
-	}
 
-	err = setResourceDataFromKafkaData(d, &kafkaData)
+	err = setResourceDataFromKafkaData(d, &kafka)
 	if err != nil {
 		return diag.FromErr(err)
 	}
