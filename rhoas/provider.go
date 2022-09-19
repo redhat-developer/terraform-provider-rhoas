@@ -58,6 +58,7 @@ func Provider() *schema.Provider {
 			"rhoas_cloud_provider_regions": cloudproviders.DataSourceCloudProviderRegions(),
 			"rhoas_kafkas":                 kafkas.DataSourceKafkas(),
 			"rhoas_kafka":                  kafkas.DataSourceKafka(),
+			"rhoas_topic":                  topics.DataSourceTopic(),
 			"rhoas_service_accounts":       serviceaccounts.DataSourceServiceAccounts(),
 		},
 		ConfigureContextFunc: providerConfigure,
