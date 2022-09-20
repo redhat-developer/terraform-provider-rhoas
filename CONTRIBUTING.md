@@ -23,11 +23,11 @@ export OFFLINE_TOKEN=<offline token>
 terraform init && terraform apply
 ```
 
-## Debuging in VSCode
-Run the lanuch configuration called *Debug* in VsCode, this will output a value for an enviroment variable 
+## Debugging in VSCode
+Run the launch configuration called *Debug* in VsCode, this will output a value for an environment variable 
 called `TF_REATTACH_PROVIDERS` in the Debug Console window, copy this output.
 
-When running a terraform commmand set the enviroment variable `TF_REATTACH_PROVIDERS` to the value given
+When running a terraform command set the environment variable `TF_REATTACH_PROVIDERS` to the value given
 either through export or setting it inline before the command.
 ```shell
 TF_REATTACH_PROVIDERS='{"provider": ... }' terraform apply
@@ -43,8 +43,8 @@ terraform apply
 Create a configuration that matched the following, add the path to the root of the project for `Directory` and `Working Directory`.
 And add the `--debug` flag to the program arguments.
 
-Then run the project in debug mode this will output a value for an enviroment variable  called `TF_REATTACH_PROVIDERS` in the Debug Console window, copy this output.
-When running a terraform commmand set the enviroment variable `TF_REATTACH_PROVIDERS` to the value given
+Then run the project in debug mode this will output a value for an environment variable  called `TF_REATTACH_PROVIDERS` in the Debug Console window, copy this output.
+When running a terraform command set the environment variable `TF_REATTACH_PROVIDERS` to the value given
 either through export or setting it inline before the command.
 ```shell
 TF_REATTACH_PROVIDERS='{"provider": ... }' terraform apply
