@@ -2,15 +2,16 @@ package kafkas
 
 import (
 	"context"
+	"io"
+	"log"
+	"strconv"
+	"time"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
-	"io/ioutil"
-	"log"
 	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
-	"strconv"
-	"time"
 )
 
 func DataSourceKafkas() *schema.Resource {
@@ -126,7 +127,7 @@ func dataSourceKafkasRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 	data, resp, err := api.KafkaMgmt().GetKafkas(ctx).Execute()
 	if err != nil {
-		bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
+		bodyBytes, ioErr := io.ReadAll(resp.Body)
 		if ioErr != nil {
 			log.Fatal(ioErr)
 		}
