@@ -2,11 +2,12 @@ package cloudproviders
 
 import (
 	"context"
-	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
-	"io/ioutil"
+	"io"
 	"log"
 	"strconv"
 	"time"
+
+	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -68,7 +69,7 @@ func dataSourceCloudProviderRegionsRead(ctx context.Context, d *schema.ResourceD
 
 	data, resp, err := c.DefaultApi.GetCloudProviderRegions(ctx, id).Execute()
 	if err != nil {
-		bodyBytes, ioErr := ioutil.ReadAll(resp.Body)
+		bodyBytes, ioErr := io.ReadAll(resp.Body)
 		if ioErr != nil {
 			log.Fatal(ioErr)
 		}
