@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// AsMap converts a JSON-tagged struct into a map
 func AsMap(original interface{}) (map[string]interface{}, error) {
 	data, err := json.Marshal(original)
 
@@ -24,31 +25,32 @@ func AsMap(original interface{}) (map[string]interface{}, error) {
 	return obj, nil
 }
 
-func GetAPIError(response *http.Response, apiError error) (error, error) {
+// GetAPIError converts an http.Response and a RHOAS apiError into golang errors
+func GetAPIError(response *http.Response, apiError error) error {
 
 	if apiError == nil && response == nil {
-		return nil, nil
+		return nil
 	}
 
 	if apiError == nil {
 		responseBody, err := stringifyResponse(response)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
-		return errors.Errorf("%s", responseBody), nil
+		return errors.Errorf("%s", responseBody)
 	}
 
 	if response == nil {
-		return apiError, nil
+		return apiError
 	}
 
 	responseBody, err := stringifyResponse(response)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return errors.Errorf("%s%s", apiError.Error(), responseBody), nil
+	return errors.Errorf("%s%s", apiError.Error(), responseBody)
 
 }
 
