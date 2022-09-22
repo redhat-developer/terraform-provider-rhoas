@@ -2,6 +2,8 @@ package kafkas
 
 import (
 	"context"
+	"time"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -9,7 +11,6 @@ import (
 	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
 	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
-	"time"
 )
 
 func ResourceKafka() *schema.Resource {
@@ -121,12 +122,9 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		Refresh: func() (interface{}, string, error) {
 			data, resp, err1 := api.KafkaMgmt().GetKafkaById(ctx, d.Id()).Execute()
 			if err1 != nil {
-				apiError, err2 := utils.GetAPIError(resp, err1)
-				if err2 != nil {
-					return nil, "", err2
+				if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
+					return nil, "", apiErr
 				}
-
-				return nil, "", apiError
 			}
 			return data, *data.Status, nil
 		},
@@ -159,12 +157,9 @@ func kafkaRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 
 	kafka, resp, err := api.KafkaMgmt().GetKafkaById(ctx, d.Id()).Execute()
 	if err != nil {
-		apiError, err1 := utils.GetAPIError(resp, err)
-		if err1 != nil {
-			return diag.FromErr(err1)
+		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
+			return diag.FromErr(apiErr)
 		}
-
-		return diag.FromErr(apiError)
 	}
 
 	err = setResourceDataFromKafkaData(d, &kafka)
@@ -191,12 +186,9 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 
 	kr, resp, err := api.KafkaMgmt().CreateKafka(ctx).Async(true).KafkaRequestPayload(*requestPayload).Execute()
 	if err != nil {
-		apiError, err1 := utils.GetAPIError(resp, err)
-		if err1 != nil {
-			return diag.FromErr(err1)
+		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
+			return diag.FromErr(apiErr)
 		}
-
-		return diag.FromErr(apiError)
 	}
 
 	if kr.Id == "" {
@@ -220,12 +212,9 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 
 			kafka, resp, err1 := api.KafkaMgmt().GetKafkaById(ctx, kr.Id).Execute()
 			if err1 != nil {
-				apiError, err2 := utils.GetAPIError(resp, err1)
-				if err2 != nil {
-					return nil, "", err2
+				if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
+					return nil, "", apiErr
 				}
-
-				return nil, "", apiError
 			}
 
 			return kafka, kafka.GetStatus(), nil
