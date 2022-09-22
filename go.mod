@@ -15,6 +15,7 @@ require (
 	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/redhat-developer/app-services-sdk-go v0.11.0 // indirect
+	github.com/stretchr/testify v1.7.2
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
 	golang.org/x/sys v0.0.0-20220627191245-f75cf1eec38b // indirect
 )
