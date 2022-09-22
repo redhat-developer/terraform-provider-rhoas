@@ -12,6 +12,34 @@ import (
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 )
 
+func TestAsMap(t *testing.T) {
+	t.Run("non unmarshable input", func(t *testing.T) {
+		_, err := utils.AsMap("invalid object")
+		assert.Error(t, err, "expected an error while converting an invalid JSON struct into a map")
+	})
+
+	t.Run("invalid input", func(t *testing.T) {
+		_, err := utils.AsMap(make(chan int))
+		assert.Error(t, err, "expected an error while converting an invalid JSON struct into a map")
+	})
+
+	t.Run("valid input", func(t *testing.T) {
+		type testStruct struct {
+			Name string `json:"name"`
+		}
+		testJSON := testStruct{
+			Name: "test",
+		}
+		want := map[string]interface{}{
+			"name": "test",
+		}
+		got, err := utils.AsMap(testJSON)
+		assert.NoError(t, err, "got unexpected error while converting a valid JSON struct into a map")
+		assert.Equal(t, want, got, "unexpected value was returned")
+	})
+
+}
+
 func TestGetAPIError(t *testing.T) {
 	var (
 		testAPIError  = errors.New("test")
