@@ -2,6 +2,7 @@ package serviceaccounts
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
@@ -72,12 +73,9 @@ func dataSourceServiceAccountRead(ctx context.Context, d *schema.ResourceData, m
 
 	serviceAccount, resp, err := api.ServiceAccountMgmt().GetServiceAccount(ctx, id).Execute()
 	if err != nil {
-		apiError, err1 := utils.GetAPIError(resp, err)
-		if err1 != nil {
-			return diag.FromErr(err1)
+		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
+			return diag.FromErr(apiErr)
 		}
-
-		return diag.FromErr(apiError)
 	}
 
 	err = setResourceDataFromServiceAccountData(d, &serviceAccount)

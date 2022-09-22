@@ -2,13 +2,14 @@ package topics
 
 import (
 	"context"
+	"time"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
 	kafkainstanceclient "github.com/redhat-developer/app-services-sdk-go/kafkainstance/apiv1/client"
 	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
-	"time"
 )
 
 func ResourceTopic() *schema.Resource {
@@ -67,14 +68,11 @@ func topicDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		return diag.FromErr(err)
 	}
 
-	resp, err1 := instanceAPI.TopicsApi.DeleteTopic(ctx, topicName).Execute()
-	if err1 != nil {
-		apiError, err2 := utils.GetAPIError(resp, err1)
-		if err2 != nil {
-			return diag.FromErr(err2)
+	resp, err := instanceAPI.TopicsApi.DeleteTopic(ctx, topicName).Execute()
+	if err != nil {
+		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
+			return diag.FromErr(apiErr)
 		}
-
-		return diag.FromErr(apiError)
 	}
 
 	d.SetId("")
@@ -105,14 +103,11 @@ func topicRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 		return diag.FromErr(err)
 	}
 
-	topic, resp, err1 := instanceAPI.TopicsApi.GetTopic(ctx, topicName).Execute()
-	if err1 != nil {
-		apiError, err2 := utils.GetAPIError(resp, err1)
-		if err2 != nil {
-			return diag.FromErr(err2)
+	topic, resp, err := instanceAPI.TopicsApi.GetTopic(ctx, topicName).Execute()
+	if err != nil {
+		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
+			return diag.FromErr(apiErr)
 		}
-
-		return diag.FromErr(apiError)
 	}
 
 	err = setResourceDataFromTopic(d, &topic)
@@ -149,14 +144,11 @@ func topicCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		return diag.FromErr(err)
 	}
 
-	topic, resp, err1 := topicRequest.Execute()
-	if err1 != nil {
-		apiError, err2 := utils.GetAPIError(resp, err1)
-		if err2 != nil {
-			return diag.FromErr(err2)
+	topic, resp, err := topicRequest.Execute()
+	if err != nil {
+		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
+			return diag.FromErr(apiErr)
 		}
-
-		return diag.FromErr(apiError)
 	}
 
 	err = setResourceDataFromTopic(d, &topic)

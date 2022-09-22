@@ -2,13 +2,14 @@ package serviceaccounts
 
 import (
 	"context"
+	"time"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
 	serviceAccounts "github.com/redhat-developer/app-services-sdk-go/serviceaccountmgmt/apiv1/client"
 	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
-	"time"
 )
 
 func ResourceServiceAccount() *schema.Resource {
@@ -59,12 +60,9 @@ func serviceAccountDelete(ctx context.Context, d *schema.ResourceData, m interfa
 
 	resp, err := api.ServiceAccountMgmt().DeleteServiceAccount(ctx, d.Id()).Execute()
 	if err != nil {
-		apiError, err1 := utils.GetAPIError(resp, err)
-		if err1 != nil {
-			return diag.FromErr(err1)
+		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
+			return diag.FromErr(apiErr)
 		}
-
-		return diag.FromErr(apiError)
 	}
 
 	d.SetId("")
@@ -84,12 +82,9 @@ func serviceAccountRead(ctx context.Context, d *schema.ResourceData, m interface
 	// service account is created
 	serviceAccount, resp, err := api.ServiceAccountMgmt().GetServiceAccount(ctx, d.Id()).Execute()
 	if err != nil {
-		apiError, err1 := utils.GetAPIError(resp, err)
-		if err1 != nil {
-			return diag.FromErr(err1)
+		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
+			return diag.FromErr(apiErr)
 		}
-
-		return diag.FromErr(apiError)
 	}
 
 	err = setResourceDataFromServiceAccountData(d, &serviceAccount)
@@ -116,12 +111,9 @@ func serviceAccountCreate(ctx context.Context, d *schema.ResourceData, m interfa
 
 	serviceAccount, resp, err := api.ServiceAccountMgmt().CreateServiceAccount(ctx).ServiceAccountCreateRequestData(*request).Execute()
 	if err != nil {
-		apiError, err1 := utils.GetAPIError(resp, err)
-		if err1 != nil {
-			return diag.FromErr(err1)
+		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
+			return diag.FromErr(apiErr)
 		}
-
-		return diag.FromErr(apiError)
 	}
 
 	d.SetId(serviceAccount.GetId())
