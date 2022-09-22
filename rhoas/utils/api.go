@@ -27,43 +27,25 @@ func AsMap(original interface{}) (map[string]interface{}, error) {
 
 // GetAPIError converts an http.Response and a RHOAS apiError into golang errors
 func GetAPIError(response *http.Response, apiError error) error {
-
-	if apiError == nil && response == nil {
-		return nil
-	}
-
-	if apiError == nil {
-		responseBody, err := stringifyResponse(response)
-		if err != nil {
-			return err
-		}
-
-		return errors.Errorf("%s", responseBody)
-	}
-
-	if response == nil {
+	switch {
+	case apiError == nil:
+		return parseResponse(response)
+	case response == nil:
 		return apiError
+	default:
+		return errors.Errorf("API error: %v, response error: %v", apiError, parseResponse(response))
 	}
-
-	responseBody, err := stringifyResponse(response)
-	if err != nil {
-		return err
-	}
-
-	return errors.Errorf("%s%s", apiError.Error(), responseBody)
-
 }
 
-func stringifyResponse(response *http.Response) (string, error) {
-
+func parseResponse(response *http.Response) error {
 	if response == nil {
-		return "", nil
+		return nil
 	}
 
 	bodyBytes, err := io.ReadAll(response.Body)
 	if err != nil {
-		return "", err
+		return errors.Wrap(err, "unable to read response body")
 	}
 
-	return string(bodyBytes), nil
+	return errors.New(string(bodyBytes))
 }
