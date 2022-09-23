@@ -2,6 +2,7 @@ package kafkas
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -122,6 +123,9 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		Refresh: func() (interface{}, string, error) {
 			data, resp, err1 := api.KafkaMgmt().GetKafkaById(ctx, d.Id()).Execute()
 			if err1 != nil {
+				if err1.Error() == "404 Not Found" {
+					return data, "404", nil
+				}
 				if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
 					return nil, "", apiErr
 				}
@@ -139,7 +143,9 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 
 	_, err = deleteStateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return diag.FromErr(errors.Wrapf(err, "Error waiting for example instance (%s) to be deleted", d.Id()))
+		if !strings.Contains(err.Error(), "not found") {
+			return diag.FromErr(errors.Wrapf(err, "Error waiting for example instance (%s) to be deleted", d.Id()))
+		}
 	}
 
 	d.SetId("")
