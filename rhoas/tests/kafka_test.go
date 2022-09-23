@@ -52,7 +52,6 @@ func TestAccRHOASKafka_Basic(t *testing.T) {
 					testAccCheckKafkaExists(kafkaPath),
 					resource.TestCheckResourceAttr(
 						kafkaPath, "name", randomName),
-					// TODO: Add more checks?
 				),
 			},
 		},
@@ -60,40 +59,39 @@ func TestAccRHOASKafka_Basic(t *testing.T) {
 
 }
 
-// TestAccRHOASKafka_Update checks that this provider is able to spin up a
-// Kafka cluster and then update it. Finnally, it destroys the resource.
-func TestAccRHOASKafka_Update(t *testing.T) {
-	randomName := fmt.Sprintf("test-%s", randomString(10))
-	kafkaPath := fmt.Sprintf("rhoas_kafka.%s", randomName)
-	preName := fmt.Sprintf("%s-pre", randomName)
-	postName := fmt.Sprintf("%s-post", randomName)
+// TODO: Enable when the update feature is developed
+// // TestAccRHOASKafka_Update checks that this provider is able to spin up a
+// // Kafka cluster and then update it. Finnally, it destroys the resource.
+// func TestAccRHOASKafka_Update(t *testing.T) {
+// 	randomName := fmt.Sprintf("test-%s", randomString(10))
+// 	kafkaPath := fmt.Sprintf("rhoas_kafka.%s", randomName)
+// 	preName := fmt.Sprintf("%s-pre", randomName)
+// 	postName := fmt.Sprintf("%s-post", randomName)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckKafkaDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccKafkaBasic(kafkaID, preName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckKafkaExists(kafkaPath),
-					resource.TestCheckResourceAttr(
-						kafkaPath, "name", preName),
-					// TODO: Add more checks?
-				),
-			},
-			{
-				Config: testAccKafkaBasic(kafkaID, postName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckKafkaExists(kafkaPath),
-					resource.TestCheckResourceAttr(
-						kafkaPath, "name", postName),
-					// TODO: Add more checks?
-				),
-			},
-		},
-	})
-}
+// 	resource.Test(t, resource.TestCase{
+// 		PreCheck:     func() { testAccPreCheck(t) },
+// 		Providers:    testAccProviders,
+// 		CheckDestroy: testAccCheckKafkaDestroy,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				Config: testAccKafkaBasic(kafkaID, preName),
+// 				Check: resource.ComposeTestCheckFunc(
+// 					testAccCheckKafkaExists(kafkaPath),
+// 					resource.TestCheckResourceAttr(
+// 						kafkaPath, "name", preName),
+// 				),
+// 			},
+// 			{
+// 				Config: testAccKafkaBasic(kafkaID, postName),
+// 				Check: resource.ComposeTestCheckFunc(
+// 					testAccCheckKafkaExists(kafkaPath),
+// 					resource.TestCheckResourceAttr(
+// 						kafkaPath, "name", postName),
+// 				),
+// 			},
+// 		},
+// 	})
+// }
 
 // TestAccRHOASKafka_Error checks that this provider returns an error if
 // some field is missconfigured
