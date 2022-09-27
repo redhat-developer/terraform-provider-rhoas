@@ -16,12 +16,13 @@ builds:
   ldflags:
     - '-s -w -X main.version={{.Version}} -X main.commit={{.Commit}}'
   goos:
-    - linux
     - darwin
+    - linux
+    - windows
   goarch:
-    - amd64
-    - arm
     - arm64
+    - arm
+    - amd64
   ignore:
     - goos: windows
       goarch: arm
@@ -40,7 +41,7 @@ checksum:
 signs:
   - artifacts: checksum
     cmd: gpg
-    args: ['--no-tty', '--batch', '--local-user', '{{ .Env.GPG_FINGERPRINT }}', '--output', '${signature}', '--detach-sign', '${artifact}']
+    args: ['--batch', '--local-user', '{{ .Env.GPG_FINGERPRINT }}', '--output', '${signature}', '--detach-sign', '${artifact}']
 release:
   extra_files:
     - glob: 'terraform-registry-manifest.json'
