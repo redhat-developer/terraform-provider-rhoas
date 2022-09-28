@@ -2,14 +2,12 @@ package kafkas
 
 import (
 	"context"
-	"io"
-	"log"
 	"strconv"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/pkg/errors"
+	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
 	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 )
@@ -117,33 +115,20 @@ func dataSourceKafkasRead(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
 	}
 
-	var raw []map[string]interface{}
-
 	val := d.Get("id")
 	id, ok := val.(string)
 	if !ok {
 		return diag.Errorf("unable to cast %v to string", val)
 	}
 
-	data, resp, err := api.KafkaMgmt().GetKafkas(ctx).Execute()
+	kafkas, resp, err := api.KafkaMgmt().GetKafkas(ctx).Execute()
 	if err != nil {
-		bodyBytes, ioErr := io.ReadAll(resp.Body)
-		if ioErr != nil {
-			log.Fatal(ioErr)
+		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
+			return diag.FromErr(apiErr)
 		}
-		return diag.Errorf("%s%s", err.Error(), string(bodyBytes))
-	}
-	obj, err := utils.AsMap(data)
-	if err != nil {
-		return diag.FromErr(errors.WithStack(err))
 	}
 
-	// coerce the type
-	for _, item := range obj["items"].([]interface{}) {
-		raw = append(raw, item.(map[string]interface{}))
-	}
-
-	if err := d.Set("kafkas", raw); err != nil {
+	if err := d.Set("kafkas", flattenOrderItemsData(&kafkas.Items)); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -156,4 +141,33 @@ func dataSourceKafkasRead(ctx context.Context, d *schema.ResourceData, m interfa
 	d.SetId(id)
 
 	return diags
+}
+
+func flattenOrderItemsData(kafkas *[]kafkamgmtclient.KafkaRequest) []interface{} {
+	if kafkas != nil {
+		ks := make([]interface{}, len(*kafkas), len(*kafkas))
+
+		for i, kafka := range *kafkas {
+			k := make(map[string]interface{})
+
+			k["cloud_provider"] = kafka.GetCloudProvider()
+			k["region"] = kafka.GetRegion()
+			k["name"] = kafka.GetName()
+			k["href"] = kafka.GetHref()
+			k["status"] = kafka.GetStatus()
+			k["owner"] = kafka.GetOwner()
+			k["bootstrap_server_host"] = kafka.GetBootstrapServerHost()
+			k["created_at"] = kafka.GetCreatedAt().Format(time.RFC3339)
+			k["updated_at"] = kafka.GetUpdatedAt().Format(time.RFC3339)
+			k["id"] = kafka.GetId()
+			k["kind"] = kafka.GetKind()
+			k["version"] = kafka.GetVersion()
+
+			ks[i] = k
+		}
+
+		return ks
+	}
+
+	return make([]interface{}, 0)
 }
