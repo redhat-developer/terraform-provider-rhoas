@@ -28,7 +28,7 @@ func randomString(length int) string {
 	rand.Seed(time.Now().UnixNano())
 	b := make([]rune, length)
 	for i := range b {
-		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+		b[i] = letterRunes[rand.Intn(len(letterRunes))] // #nosec G404
 	}
 	return string(b)
 }

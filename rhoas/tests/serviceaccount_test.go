@@ -166,11 +166,14 @@ func testAccCheckServiceAccountExists(resource string, serviceAccount *saclient.
 			}
 		}
 
-		*serviceAccount = *&gotServiceAccount
+		*serviceAccount = gotServiceAccount
 
 		return nil
 	}
 }
+
+// needed in order to pass linting until we unskip the test that uses this function
+var _ = testCheckPreAndPostIDs
 
 func testCheckPreAndPostIDs(pre, post *saclient.ServiceAccountData) resource.TestCheckFunc {
 	return func(state *terraform.State) error {
