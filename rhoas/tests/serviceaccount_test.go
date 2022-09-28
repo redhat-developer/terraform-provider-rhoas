@@ -86,7 +86,7 @@ func TestAccRHOASServiceAccount_Update(t *testing.T) {
 						serviceAccountPath, &postServiceAccount),
 					resource.TestCheckResourceAttr(
 						serviceAccountPath, "name", postName),
-					testCheckPreAndPostIDs(&preServiceAccount, &postServiceAccount),
+					testCheckServiceAccountPreAndPostIDs(&preServiceAccount, &postServiceAccount),
 				),
 			},
 		},
@@ -173,9 +173,9 @@ func testAccCheckServiceAccountExists(resource string, serviceAccount *saclient.
 }
 
 // needed in order to pass linting until we unskip the test that uses this function
-var _ = testCheckPreAndPostIDs
+var _ = testCheckServiceAccountPreAndPostIDs
 
-func testCheckPreAndPostIDs(pre, post *saclient.ServiceAccountData) resource.TestCheckFunc {
+func testCheckServiceAccountPreAndPostIDs(pre, post *saclient.ServiceAccountData) resource.TestCheckFunc {
 	return func(state *terraform.State) error {
 		if *pre.Id != *post.Id {
 			return errors.Errorf("expected the id to be the same - before update the id was %s, after it was %s)", *pre.Id, *post.Id)

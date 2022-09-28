@@ -3,40 +3,23 @@ package tests
 import (
 	"context"
 	"fmt"
-	"math/rand"
-	"os"
 	"regexp"
 	"testing"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas"
 	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 
 	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
 )
 
-var (
-	testAccProviders map[string]*schema.Provider
-	testAccRHOAS     *schema.Provider
-)
-
 const (
 	kafkaID   = "test_kafka"
 	kafkaPath = "rhoas_kafka.test_kafka"
 )
-
-func init() {
-	testAccRHOAS = rhoas.Provider()
-	testAccProviders = map[string]*schema.Provider{
-		"rhoas": testAccRHOAS,
-	}
-}
 
 // TestAccRHOASKafka_Basic checks that this provider is able to spin up a
 // Kafka cluster and then destroy it.
@@ -126,14 +109,6 @@ func TestAccRHOASKafka_Error(t *testing.T) {
 
 }
 
-// testAccPreCheck validates the necessary test API keys exist
-// in the testing environment
-func testAccPreCheck(t *testing.T) {
-	if v := os.Getenv("OFFLINE_TOKEN"); v == "" {
-		t.Fatal("OFFLINE_TOKEN must be set for acceptance tests")
-	}
-}
-
 // testAccCheckKafkaDestroy verifies the Kafka cluster has been destroyed
 func testAccCheckKafkaDestroy(s *terraform.State) error {
 	// retrieve the connection established in Provider configuration
@@ -194,17 +169,6 @@ func testAccCheckKafkaExists(resource string, kafka *kafkamgmtclient.KafkaReques
 
 		return nil
 	}
-}
-
-func randomString(length int) string {
-	var letterRunes = []rune("abcdefghijklmnopqrstuvwxyz")
-
-	rand.Seed(time.Now().UnixNano())
-	b := make([]rune, length)
-	for i := range b {
-		b[i] = letterRunes[rand.Intn(len(letterRunes))] // #nosec G404
-	}
-	return string(b)
 }
 
 // needed in order to pass linting until we unskip the test that uses this function
