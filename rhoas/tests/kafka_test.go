@@ -68,6 +68,12 @@ func TestAccRHOASKafka_Update(t *testing.T) {
 	// TODO: FIXME
 	t.Skip("FIXME")
 
+	var (
+		// Used to compare the pre and post IDs
+		prekafka  kafkamgmtclient.KafkaRequest
+		postkafka kafkamgmtclient.KafkaRequest
+	)
+
 	randomName := fmt.Sprintf("test-%s", randomString(10))
 	preName := fmt.Sprintf("%s-pre", randomName)
 	postName := fmt.Sprintf("%s-post", randomName)
@@ -80,7 +86,7 @@ func TestAccRHOASKafka_Update(t *testing.T) {
 			{
 				Config: testAccKafkaBasic(kafkaID, preName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckKafkaExists(kafkaPath),
+					testAccCheckKafkaExists(kafkaPath, &prekafka),
 					resource.TestCheckResourceAttr(
 						kafkaPath, "name", preName),
 				),
@@ -88,9 +94,10 @@ func TestAccRHOASKafka_Update(t *testing.T) {
 			{
 				Config: testAccKafkaBasic(kafkaID, postName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckKafkaExists(kafkaPath),
+					testAccCheckKafkaExists(kafkaPath, &postkafka),
 					resource.TestCheckResourceAttr(
 						kafkaPath, "name", postName),
+					testCheckKafkaPreAndPostIDs(&prekafka, &postkafka),
 				),
 			},
 		},
