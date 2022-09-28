@@ -66,7 +66,6 @@ func TestAccRHOASKafka_Update(t *testing.T) {
 	t.Skip("FIXME")
 
 	randomName := fmt.Sprintf("test-%s", randomString(10))
-	kafkaPath := fmt.Sprintf("rhoas_kafka.%s", randomName)
 	preName := fmt.Sprintf("%s-pre", randomName)
 	postName := fmt.Sprintf("%s-post", randomName)
 
