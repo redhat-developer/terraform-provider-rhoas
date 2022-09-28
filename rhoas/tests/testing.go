@@ -36,6 +36,9 @@ func randomString(length int) string {
 // testAccPreCheck validates the necessary test API keys exist
 // in the testing environment
 func testAccPreCheck(t *testing.T) {
+	if os.Getenv("TF_ACC") != "1" {
+		return
+	}
 	if v := os.Getenv("OFFLINE_TOKEN"); v == "" {
 		t.Fatal("OFFLINE_TOKEN must be set for acceptance tests")
 	}
