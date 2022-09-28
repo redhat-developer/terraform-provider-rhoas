@@ -181,10 +181,6 @@ func testCheckPreAndPostIDs(pre, post *saclient.ServiceAccountData) resource.Tes
 	}
 }
 
-func testStoreServiceAccountToLocalVariable(in saclient.ServiceAccountData, out *saclient.ServiceAccountData) {
-	out = &in
-}
-
 func testAccServiceAccountBasic(id, name string) string {
 	return fmt.Sprintf(`
 resource "rhoas_service_account" "%s" {
