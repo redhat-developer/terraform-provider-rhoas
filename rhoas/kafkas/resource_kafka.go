@@ -126,7 +126,7 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 				if err1.Error() == "404 Not Found" {
 					return data, "404", nil
 				}
-				if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
+				if apiErr := utils.GetAPIError(resp, err1); apiErr != nil {
 					return nil, "", apiErr
 				}
 			}
