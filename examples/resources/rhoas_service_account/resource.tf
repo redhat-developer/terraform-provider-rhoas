@@ -1,7 +1,8 @@
 terraform {
   required_providers {
     rhoas = {
-      source  = "pmuir/rhoas"
+      source  = "registry.terraform.io/redhat-developer/rhoas"
+      version = "0.1"
     }
   }
 }
@@ -9,17 +10,15 @@ terraform {
 provider "rhoas" {}
 
 resource "rhoas_service_account" "foo" {
-  service_account {
-    name = "foo"
-    description = "blah blah blah"
-  }
+  name        = "foo"
+  description = "blah blah blah"
 }
 
 output "client_id" {
-  value = rhoas_service_account.foo.service_account[0].client_id
+  value = rhoas_service_account.foo.client_id
 }
 
 output "client_secret" {
-  value = rhoas_service_account.foo.service_account[0].client_secret
+  value     = rhoas_service_account.foo.client_secret
   sensitive = true
 }
