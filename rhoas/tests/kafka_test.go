@@ -17,6 +17,8 @@ import (
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas"
 	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
+
+	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
 )
 
 var (
@@ -39,6 +41,7 @@ func init() {
 // TestAccRHOASKafka_Basic checks that this provider is able to spin up a
 // Kafka cluster and then destroy it.
 func TestAccRHOASKafka_Basic(t *testing.T) {
+	var kafka kafkamgmtclient.KafkaRequest
 	randomName := fmt.Sprintf("test-%s", randomString(10))
 
 	resource.Test(t, resource.TestCase{
@@ -49,7 +52,7 @@ func TestAccRHOASKafka_Basic(t *testing.T) {
 			{
 				Config: testAccKafkaBasic(kafkaID, randomName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckKafkaExists(kafkaPath),
+					testAccCheckKafkaExists(kafkaPath, &kafka),
 					resource.TestCheckResourceAttr(
 						kafkaPath, "name", randomName),
 				),
@@ -155,7 +158,7 @@ func testAccCheckKafkaDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckKafkaExists(resource string) resource.TestCheckFunc {
+func testAccCheckKafkaExists(resource string, kafka *kafkamgmtclient.KafkaRequest) resource.TestCheckFunc {
 	return func(state *terraform.State) error {
 		rs, ok := state.RootModule().Resources[resource]
 		if !ok {
@@ -169,16 +172,18 @@ func testAccCheckKafkaExists(resource string) resource.TestCheckFunc {
 		if !ok {
 			return errors.Errorf("unable to cast %v to rhoasAPI.Clients)", testAccRHOAS.Meta())
 		}
-		kafka, resp, err := api.KafkaMgmt().GetKafkaById(context.Background(), rs.Primary.ID).Execute()
+		gotKafka, resp, err := api.KafkaMgmt().GetKafkaById(context.Background(), rs.Primary.ID).Execute()
 		if err != nil {
 			if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
 				return apiErr
 			}
 		}
 
-		if *kafka.Status != "ready" {
-			return errors.Errorf("error provisioning kafka. Status is %s", *kafka.Status)
+		if *gotKafka.Status != "ready" {
+			return errors.Errorf("error provisioning kafka. Status is %s", *gotKafka.Status)
 		}
+
+		*kafka = gotKafka
 
 		return nil
 	}
@@ -193,6 +198,18 @@ func randomString(length int) string {
 		b[i] = letterRunes[rand.Intn(len(letterRunes))] // #nosec G404
 	}
 	return string(b)
+}
+
+// needed in order to pass linting until we unskip the test that uses this function
+var _ = testCheckKafkaPreAndPostIDs
+
+func testCheckKafkaPreAndPostIDs(pre, post *kafkamgmtclient.KafkaRequest) resource.TestCheckFunc {
+	return func(state *terraform.State) error {
+		if pre.Id != post.Id {
+			return errors.Errorf("expected the id to be the same - before update the id was %s, after it was %s)", pre.Id, post.Id)
+		}
+		return nil
+	}
 }
 
 func testAccKafkaBasic(id, name string) string {
