@@ -16,7 +16,8 @@ description: |-
 terraform {
   required_providers {
     rhoas = {
-      source  = "pmuir/rhoas"
+      source  = "registry.terraform.io/redhat-developer/rhoas"
+      version = "0.1"
     }
   }
 }

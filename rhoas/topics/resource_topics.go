@@ -23,7 +23,7 @@ func ResourceTopic() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Description: "The name of the Kafka instance",
+				Description: "The name of the topic",
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
