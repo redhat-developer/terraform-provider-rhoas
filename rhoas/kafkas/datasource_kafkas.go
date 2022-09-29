@@ -128,7 +128,7 @@ func dataSourceKafkasRead(ctx context.Context, d *schema.ResourceData, m interfa
 		}
 	}
 
-	if err := d.Set("kafkas", flattenOrderItemsData(&kafkas.Items)); err != nil {
+	if err := d.Set("kafkas", flattenOrderItemsData(kafkas.Items)); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -143,25 +143,25 @@ func dataSourceKafkasRead(ctx context.Context, d *schema.ResourceData, m interfa
 	return diags
 }
 
-func flattenOrderItemsData(kafkas *[]kafkamgmtclient.KafkaRequest) []interface{} {
+func flattenOrderItemsData(kafkas []kafkamgmtclient.KafkaRequest) []interface{} {
 	if kafkas != nil {
-		ks := make([]interface{}, len(*kafkas), len(*kafkas))
+		ks := make([]interface{}, len(kafkas), len(kafkas))
 
-		for i, kafka := range *kafkas {
+		for i := range kafkas {
 			k := make(map[string]interface{})
 
-			k["cloud_provider"] = kafka.GetCloudProvider()
-			k["region"] = kafka.GetRegion()
-			k["name"] = kafka.GetName()
-			k["href"] = kafka.GetHref()
-			k["status"] = kafka.GetStatus()
-			k["owner"] = kafka.GetOwner()
-			k["bootstrap_server_host"] = kafka.GetBootstrapServerHost()
-			k["created_at"] = kafka.GetCreatedAt().Format(time.RFC3339)
-			k["updated_at"] = kafka.GetUpdatedAt().Format(time.RFC3339)
-			k["id"] = kafka.GetId()
-			k["kind"] = kafka.GetKind()
-			k["version"] = kafka.GetVersion()
+			k["cloud_provider"] = kafkas[i].GetCloudProvider()
+			k["region"] = kafkas[i].GetRegion()
+			k["name"] = kafkas[i].GetName()
+			k["href"] = kafkas[i].GetHref()
+			k["status"] = kafkas[i].GetStatus()
+			k["owner"] = kafkas[i].GetOwner()
+			k["bootstrap_server_host"] = kafkas[i].GetBootstrapServerHost()
+			k["created_at"] = kafkas[i].GetCreatedAt().Format(time.RFC3339)
+			k["updated_at"] = kafkas[i].GetUpdatedAt().Format(time.RFC3339)
+			k["id"] = kafkas[i].GetId()
+			k["kind"] = kafkas[i].GetKind()
+			k["version"] = kafkas[i].GetVersion()
 
 			ks[i] = k
 		}
