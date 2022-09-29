@@ -3,12 +3,12 @@
 page_title: "rhoas_cloud_provider_regions Data Source - terraform-provider-rhoas"
 subcategory: ""
 description: |-
-  rhoas_cloud_providers_regions provides a list of the regions available for Red Hat OpenShift Streams for Apache Kafka.
+  rhoas_cloud_provider_regions provides a list of the regions available for Red Hat OpenShift Streams for Apache Kafka.
 ---
 
 # rhoas_cloud_provider_regions (Data Source)
 
-`rhoas_cloud_providers_regions` provides a list of the regions available for Red Hat OpenShift Streams for Apache Kafka.
+`rhoas_cloud_provider_regions` provides a list of the regions available for Red Hat OpenShift Streams for Apache Kafka.
 
 
 
