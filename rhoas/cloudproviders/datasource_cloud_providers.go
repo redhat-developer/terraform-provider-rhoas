@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
+	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -55,12 +55,12 @@ func dataSourceCloudProvidersRead(ctx context.Context, d *schema.ResourceData, m
 
 	var diags diag.Diagnostics
 
-	c, ok := m.(*kafkamgmtclient.APIClient)
+	api, ok := m.(rhoasAPI.Clients)
 	if !ok {
-		return diag.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
+		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
 	}
 
-	data, resp, err := c.DefaultApi.GetCloudProviders(ctx).Execute()
+	data, resp, err := api.KafkaMgmt().GetCloudProviders(ctx).Execute()
 	if err != nil {
 		bodyBytes, ioErr := io.ReadAll(resp.Body)
 		if ioErr != nil {
