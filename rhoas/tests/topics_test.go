@@ -54,8 +54,8 @@ func TestAccRHOASTopic_Basic(t *testing.T) {
 
 }
 
-// TestAccRHOASTopic_Update checks that this provider is able to spin up a
-// Topic cluster and then update it. Finally, it destroys the resource.
+// TestAccRHOASTopic_Update checks that this provider is able to create a
+// topic and then update it. Finally, it destroys the resource.
 func TestAccRHOASTopic_Update(t *testing.T) {
 	// TODO: FIXME
 	t.Skip("FIXME")
@@ -117,7 +117,7 @@ func TestAccRHOASTopic_Error(t *testing.T) {
 
 }
 
-// testAccCheckTopicDestroy verifies the Topic cluster has been destroyed
+// testAccCheckTopicDestroy verifies the topic has been destroyed
 func testAccCheckTopicDestroy(s *terraform.State) error {
 	ctx := context.Background()
 	// retrieve the connection established in Provider configuration
