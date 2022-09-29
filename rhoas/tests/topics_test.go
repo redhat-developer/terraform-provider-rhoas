@@ -132,7 +132,7 @@ func testAccCheckTopicDestroy(s *terraform.State) error {
 			continue
 		}
 
-		kafka_id, ok := rs.Primary.Attributes["kafka_id"]
+		kafkaID, ok := rs.Primary.Attributes["kafka_id"]
 		if !ok {
 			return errors.Errorf("kafka_id is not set for topic %s", rs.Primary.String())
 		}
@@ -141,7 +141,7 @@ func testAccCheckTopicDestroy(s *terraform.State) error {
 			return errors.Errorf("name is not set for topic %s", rs.Primary.String())
 		}
 
-		instanceAPI, _, err := api.KafkaAdmin(&ctx, kafka_id)
+		instanceAPI, _, err := api.KafkaAdmin(&ctx, kafkaID)
 		if err != nil {
 			return err
 		}
@@ -179,7 +179,7 @@ func testAccCheckTopicExists(resource string, topic *kafkainstanceclient.Topic) 
 			return errors.Errorf("unable to cast %v to rhoasAPI.Clients)", testAccRHOAS.Meta())
 		}
 
-		kafka_id, ok := rs.Primary.Attributes["kafka_id"]
+		kafkaID, ok := rs.Primary.Attributes["kafka_id"]
 		if !ok {
 			return errors.Errorf("kafka_id is not set for topic %s", rs.Primary.String())
 		}
@@ -188,7 +188,7 @@ func testAccCheckTopicExists(resource string, topic *kafkainstanceclient.Topic) 
 			return errors.Errorf("name is not set for topic %s", rs.Primary.String())
 		}
 
-		instanceAPI, _, err := api.KafkaAdmin(&ctx, kafka_id)
+		instanceAPI, _, err := api.KafkaAdmin(&ctx, kafkaID)
 		if err != nil {
 			return err
 		}
