@@ -3,6 +3,7 @@ package rhoas
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	authAPI "github.com/redhat-developer/app-services-sdk-go/auth/apiv1"
@@ -58,6 +59,7 @@ func Provider() *schema.Provider {
 			"rhoas_cloud_provider_regions": cloudproviders.DataSourceCloudProviderRegions(),
 			"rhoas_kafkas":                 kafkas.DataSourceKafkas(),
 			"rhoas_kafka":                  kafkas.DataSourceKafka(),
+			"rhoas_service_account":        serviceaccounts.DataSourceServiceAccount(),
 			"rhoas_service_accounts":       serviceaccounts.DataSourceServiceAccounts(),
 		},
 		ConfigureContextFunc: providerConfigure,
