@@ -113,6 +113,38 @@ func TestAccRHOASServiceAccount_Error(t *testing.T) {
 
 }
 
+// TestAccRHOASServiceAccount_DataSource checks the rhoas_service_account data source behavior
+func TestAccRHOASServiceAccount_DataSource(t *testing.T) {
+	var serviceAccount saclient.ServiceAccountData
+	randomName := fmt.Sprintf("test-%s", randomString(10))
+	config := fmt.Sprintf(`
+resource "rhoas_service_account" "%[1]s" {
+  name = "%[2]s"
+}
+
+data "rhoas_service_account" "test" {
+	id = rhoas_service_account.%[1]s.id
+}`, serviceAccountID, randomName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckServiceAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckServiceAccountExists(serviceAccountPath, &serviceAccount),
+					resource.TestCheckResourceAttr(
+						serviceAccountPath, "name", randomName),
+					resource.TestCheckResourceAttr(
+						"data.rhoas_service_account.test", "name", randomName),
+				),
+			},
+		},
+	})
+}
+
 // testAccCheckServiceAccountDestroy verifies the service account has been destroyed
 func testAccCheckServiceAccountDestroy(s *terraform.State) error {
 	// retrieve the connection established in Provider configuration

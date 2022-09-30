@@ -83,5 +83,7 @@ func dataSourceServiceAccountRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 
+	d.SetId(serviceAccount.GetId())
+
 	return diags
 }
