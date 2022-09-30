@@ -16,13 +16,21 @@ description: |-
 terraform {
   required_providers {
     rhoas = {
+      source  = "registry.terraform.io/redhat-developer/rhoas"
       version = "0.1"
-      source  = "pmuir/rhoas"
     }
   }
 }
 
 provider "rhoas" {}
+
+resource "rhoas_service_account" "foo" {
+  name = "foo"
+}
+
+data "rhoas_service_account" "foo" {
+  id = rhoas_service_account.foo.id
+}
 
 data "rhoas_service_accounts" "all" {
 }
@@ -46,12 +54,10 @@ output "all_service_accounts" {
 Read-Only:
 
 - `client_id` (String)
-- `created_at` (String)
+- `created_at` (Number)
+- `created_by` (String)
 - `description` (String)
-- `href` (String)
 - `id` (String)
-- `kind` (String)
 - `name` (String)
-- `owner` (String)
 
 
