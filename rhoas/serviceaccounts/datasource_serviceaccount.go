@@ -19,10 +19,6 @@ func DataSourceServiceAccount() *schema.Resource {
 				Computed:    true,
 				Description: "The client id associated with the service account",
 			},
-			"href": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"description": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -33,23 +29,18 @@ func DataSourceServiceAccount() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 			},
-			"kind": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The kind of resource in the API",
-			},
 			"name": {
 				Description: "The name of the service account",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
-			"owner": {
+			"created_by": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The username of the Red Hat account that owns the service account",
 			},
 			"created_at": {
-				Type:        schema.TypeString,
+				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "The RFC3339 date and time at which the service account was created",
 			},
