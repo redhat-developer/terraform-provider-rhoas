@@ -126,6 +126,8 @@ data "rhoas_service_account" "test" {
 	id = rhoas_service_account.%[1]s.id
 }`, serviceAccountID, randomName)
 
+	dataSourcePath := "data.rhoas_service_account.test"
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -135,10 +137,30 @@ data "rhoas_service_account" "test" {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckServiceAccountExists(serviceAccountPath, &serviceAccount),
-					resource.TestCheckResourceAttr(
-						serviceAccountPath, "name", randomName),
-					resource.TestCheckResourceAttr(
-						"data.rhoas_service_account.test", "name", randomName),
+					resource.TestCheckResourceAttrPair(
+						serviceAccountPath, "name",
+						dataSourcePath, "name",
+					),
+					resource.TestCheckResourceAttrPair(
+						serviceAccountPath, "client_id",
+						dataSourcePath, "client_id",
+					),
+					resource.TestCheckResourceAttrPair(
+						serviceAccountPath, "description",
+						dataSourcePath, "description",
+					),
+					resource.TestCheckResourceAttrPair(
+						serviceAccountPath, "id",
+						dataSourcePath, "id",
+					),
+					resource.TestCheckResourceAttrPair(
+						serviceAccountPath, "created_by",
+						dataSourcePath, "created_by",
+					),
+					resource.TestCheckResourceAttrPair(
+						serviceAccountPath, "created_at",
+						dataSourcePath, "created_at",
+					),
 				),
 			},
 		},
