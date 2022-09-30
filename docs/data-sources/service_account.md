@@ -22,11 +22,9 @@ description: |-
 ### Read-Only
 
 - `client_id` (String) The client id associated with the service account
-- `created_at` (String) The RFC3339 date and time at which the service account was created
+- `created_at` (Number) The RFC3339 date and time at which the service account was created
+- `created_by` (String) The username of the Red Hat account that owns the service account
 - `description` (String) A description of the service account
-- `href` (String)
-- `kind` (String) The kind of resource in the API
 - `name` (String) The name of the service account
-- `owner` (String) The username of the Red Hat account that owns the service account
 
 
