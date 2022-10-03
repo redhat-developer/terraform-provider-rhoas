@@ -70,4 +70,6 @@ testacc:
 lint:
 	golangci-lint run
 
-
+.PHONY: generate-doc
+generate-doc:
+	go generate ./...

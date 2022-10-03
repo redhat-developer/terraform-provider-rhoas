@@ -3,6 +3,7 @@ package rhoas
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	authAPI "github.com/redhat-developer/app-services-sdk-go/auth/apiv1"
@@ -14,6 +15,9 @@ import (
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/serviceaccounts"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/topics"
 )
+
+// Generate the Terraform provider documentation using `tfplugindocs`:
+//go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
 
 const (
 	DefaultAPIURL = "https://api.openshift.com"
