@@ -3,6 +3,7 @@ package rhoas
 import (
 	"context"
 	"fmt"
+	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/acls"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -56,6 +57,7 @@ func Provider() *schema.Provider {
 			"rhoas_kafka":           kafkas.ResourceKafka(),
 			"rhoas_topic":           topics.ResourceTopic(),
 			"rhoas_service_account": serviceaccounts.ResourceServiceAccount(),
+			"rhoas_acl":             acls.ResourceAcl(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"rhoas_cloud_providers":        cloudproviders.DataSourceCloudProviders(),
