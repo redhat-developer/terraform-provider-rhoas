@@ -7,7 +7,7 @@
 
 ### Missing required fields
 The field `partitions` is not defined and does not have default values.
-```json
+```
 resource "rhoas_topic" "topic" {
   name = "my-topic"
   kafka_id = rhoas_kafka.instance.id
@@ -15,7 +15,7 @@ resource "rhoas_topic" "topic" {
 ```
 
 ### Topic creation success
-```json
+```
 resource "rhoas_topic" "topic" {
   name = "topic"
   partitions = 1
