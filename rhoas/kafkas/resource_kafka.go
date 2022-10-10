@@ -2,6 +2,7 @@ package kafkas
 
 import (
 	"context"
+	kafkainstanceclient "github.com/redhat-developer/app-services-sdk-go/kafkainstance/apiv1/client"
 	"strings"
 	"time"
 
@@ -88,6 +89,15 @@ func ResourceKafka() *schema.Resource {
 				Description: "The version of Kafka the instance is using",
 				Type:        schema.TypeString,
 				Computed:    true,
+			},
+			"acl": {
+				Type:     schema.TypeList,
+				ForceNew: true,
+				Required: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeMap,
+					Elem: schema.TypeString,
+				},
 			},
 		},
 	}
@@ -211,11 +221,6 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 			"provisioning",
 		},
 		Refresh: func() (interface{}, string, error) {
-			api, ok := m.(rhoasAPI.Clients)
-			if !ok {
-				return nil, "", errors.Errorf("unable to cast %v to rhoasAPI.Clients)", m)
-			}
-
 			kafka, resp, err1 := api.KafkaMgmt().GetKafkaById(ctx, kr.Id).Execute()
 			if err1 != nil {
 				if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
@@ -249,7 +254,83 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		return diag.FromErr(err)
 	}
 
+	// now that kafka is created define the acl
+	err = createACLForKafka(ctx, api, d, &kafka)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	return diags
+}
+
+func createACLForKafka(ctx context.Context, api rhoasAPI.Clients, d *schema.ResourceData, kafka *kafkamgmtclient.KafkaRequest) error {
+
+	acl, ok := d.Get("acl").([]interface{})
+	if !ok {
+		return errors.Errorf("No acl defined in the kafka resource")
+	}
+
+	for i := 0; i < len(acl); i++ {
+		element, ok := acl[i].(map[string]interface{})
+		if !ok {
+			return errors.Errorf("Cannot cast contents of acl to a map[string]interface{}")
+		}
+
+		principal, ok := element["principal"].(string)
+		if !ok {
+			return errors.Errorf("There was a problem getting the principal value in the kafka acl")
+		}
+
+		// required for api, the user id, service account id or * works
+		// when appended to User:
+		principal = "User:" + principal
+
+		resourceType, ok := element["resource_type"].(string)
+		if !ok {
+			return errors.Errorf("There was a problem getting the resource type value in the kafka acl")
+		}
+
+		resourceName, ok := element["resource_name"].(string)
+		if !ok {
+			return errors.Errorf("There was a problem getting the resource name value in the kafka acl")
+		}
+
+		patternType, ok := element["pattern_type"].(string)
+		if !ok {
+			return errors.Errorf("There was a problem getting the pattern type value in the kafka acl")
+		}
+
+		operationType, ok := element["operation_type"].(string)
+		if !ok {
+			return errors.Errorf("There was a problem getting the operation type value in the kafka acl")
+		}
+
+		permissionType, ok := element["permission_type"].(string)
+		if !ok {
+			return errors.Errorf("There was a problem getting the permission type value in the kafka acl")
+		}
+
+		binding := kafkainstanceclient.NewAclBinding(
+			kafkainstanceclient.AclResourceType(resourceType),
+			resourceName,
+			kafkainstanceclient.AclPatternType(patternType),
+			principal,
+			kafkainstanceclient.AclOperation(operationType),
+			kafkainstanceclient.AclPermissionType(permissionType),
+		)
+
+		instanceAPI, _, err := api.KafkaAdmin(&ctx, kafka.GetId())
+		if err != nil {
+			return err
+		}
+
+		_, err = instanceAPI.AclsApi.CreateAcl(ctx).AclBinding(*binding).Execute()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func setResourceDataFromKafkaData(d *schema.ResourceData, kafka *kafkamgmtclient.KafkaRequest) error {

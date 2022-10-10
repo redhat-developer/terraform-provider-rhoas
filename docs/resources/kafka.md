@@ -38,6 +38,7 @@ output "bootstrap_server_foo" {
 
 ### Required
 
+- `acl` (List of Map of String)
 - `name` (String) The name of the Kafka instance
 
 ### Optional
