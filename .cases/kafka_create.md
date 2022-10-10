@@ -6,7 +6,7 @@
 
 ### Missing required fields
 The fields `cloud_provider` and `region` are not defined and do not have default values.
-```json 
+```
 resource "rhoas_kafka" "instance" {
   name = "my-instance"
 }

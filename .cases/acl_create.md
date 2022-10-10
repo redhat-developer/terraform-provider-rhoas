@@ -7,7 +7,7 @@
 ## Cases
 
 ### ACL creation success
-```json
+```
 resource "resource_acl" "acl" {
   kafka_id = rhoas_kafka.instance.id
   resource_type = "TOPIC"
