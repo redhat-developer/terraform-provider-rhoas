@@ -42,6 +42,7 @@ output "bootstrap_server_foo" {
 
 ### Optional
 
+- `acl` (List of Map of String)
 - `cloud_provider` (String) The cloud provider to use. A list of available cloud providers can be obtained using `data.rhoas_cloud_providers`.
 - `region` (String) The region to use. A list of available regions can be obtained using `data.rhoas_cloud_providers_regions`.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
