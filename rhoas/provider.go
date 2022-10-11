@@ -57,7 +57,7 @@ func Provider() *schema.Provider {
 			"rhoas_kafka":           kafkas.ResourceKafka(),
 			"rhoas_topic":           topics.ResourceTopic(),
 			"rhoas_service_account": serviceaccounts.ResourceServiceAccount(),
-			"rhoas_acl":             acls.ResourceAcl(),
+			"rhoas_acl":             acls.ResourceACL(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"rhoas_cloud_providers":        cloudproviders.DataSourceCloudProviders(),

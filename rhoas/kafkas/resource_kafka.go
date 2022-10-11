@@ -3,6 +3,7 @@ package kafkas
 import (
 	"context"
 	kafkainstanceclient "github.com/redhat-developer/app-services-sdk-go/kafkainstance/apiv1/client"
+	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/acls"
 	"strings"
 	"time"
 
@@ -289,29 +290,29 @@ func createACLForKafka(ctx context.Context, api rhoasAPI.Clients, d *schema.Reso
 
 		// required for api, the user id, service account id or * works
 		// when appended to User:
-		principal = "User:" + principal
+		principal = acls.PrincipalPrefix + principal
 
-		resourceType, ok := element["resource_type"].(string)
+		resourceType, ok := element[acls.ResourceTypeField].(string)
 		if !ok {
 			return errors.Errorf("There was a problem getting the resource type value in the kafka acl")
 		}
 
-		resourceName, ok := element["resource_name"].(string)
+		resourceName, ok := element[acls.ResourceNameField].(string)
 		if !ok {
 			return errors.Errorf("There was a problem getting the resource name value in the kafka acl")
 		}
 
-		patternType, ok := element["pattern_type"].(string)
+		patternType, ok := element[acls.PatternTypeField].(string)
 		if !ok {
 			return errors.Errorf("There was a problem getting the pattern type value in the kafka acl")
 		}
 
-		operationType, ok := element["operation_type"].(string)
+		operationType, ok := element[acls.OperationTypeField].(string)
 		if !ok {
 			return errors.Errorf("There was a problem getting the operation type value in the kafka acl")
 		}
 
-		permissionType, ok := element["permission_type"].(string)
+		permissionType, ok := element[acls.PermissionTypeField].(string)
 		if !ok {
 			return errors.Errorf("There was a problem getting the permission type value in the kafka acl")
 		}
