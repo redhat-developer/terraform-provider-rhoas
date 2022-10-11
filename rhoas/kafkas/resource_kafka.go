@@ -93,7 +93,7 @@ func ResourceKafka() *schema.Resource {
 			"acl": {
 				Type:     schema.TypeList,
 				ForceNew: true,
-				Required: true,
+				Optional: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeMap,
 					Elem: schema.TypeString,
@@ -265,7 +265,13 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 
 func createACLForKafka(ctx context.Context, api rhoasAPI.Clients, d *schema.ResourceData, kafka *kafkamgmtclient.KafkaRequest) error {
 
-	acl, ok := d.Get("acl").([]interface{})
+	aclInput := d.Get("acl")
+	if aclInput == nil {
+		// no input was given for acl so do nothing
+		return nil
+	}
+
+	acl, ok := aclInput.([]interface{})
 	if !ok {
 		return errors.Errorf("No acl defined in the kafka resource")
 	}
@@ -311,12 +317,12 @@ func createACLForKafka(ctx context.Context, api rhoasAPI.Clients, d *schema.Reso
 		}
 
 		binding := kafkainstanceclient.NewAclBinding(
-			kafkainstanceclient.AclResourceType(resourceType),
+			kafkainstanceclient.AclResourceType(strings.ToUpper(resourceType)),
 			resourceName,
-			kafkainstanceclient.AclPatternType(patternType),
+			kafkainstanceclient.AclPatternType(strings.ToUpper(patternType)),
 			principal,
-			kafkainstanceclient.AclOperation(operationType),
-			kafkainstanceclient.AclPermissionType(permissionType),
+			kafkainstanceclient.AclOperation(strings.ToUpper(operationType)),
+			kafkainstanceclient.AclPermissionType(strings.ToUpper(permissionType)),
 		)
 
 		instanceAPI, _, err := api.KafkaAdmin(&ctx, kafka.GetId())
