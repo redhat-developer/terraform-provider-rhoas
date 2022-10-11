@@ -3,14 +3,18 @@ package acls
 import (
 	"context"
 	kafkainstanceclient "github.com/redhat-developer/app-services-sdk-go/kafkainstance/apiv1/client"
+	"math/rand"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
-	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
 	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
 )
+
+const PrincipalPrefix = "User:"
 
 func ResourceAcl() *schema.Resource {
 	return &schema.Resource{
@@ -30,12 +34,6 @@ func ResourceAcl() *schema.Resource {
 			},
 			"kafka_id": {
 				Description: "The ID of the kafka instance",
-				Type:        schema.TypeString,
-				Optional:    true,
-				ForceNew:    true,
-			},
-			"kafka_admin_url": {
-				Description: "URL of the kafka instance to connect to",
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
@@ -85,6 +83,26 @@ func aclRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Di
 
 	var diags diag.Diagnostics
 
+	api, ok := m.(rhoasAPI.Clients)
+	if !ok {
+		return diag.Errorf("unable to cast %v to rhoasAPI.Clients", m)
+	}
+
+	kafkaID, ok := d.Get("kafka_id").(string)
+	if !ok {
+		return diag.FromErr(errors.Errorf("There was a problem getting the kafka ID value in the schema resource"))
+	}
+
+	instanceApi, _, err := api.KafkaAdmin(&ctx, kafkaID)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = setResourceDataFromAclData(ctx, d, instanceApi)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	return diags
 }
 
@@ -117,57 +135,69 @@ func aclCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 		return diag.FromErr(err)
 	}
 
+	idNumber := rand.Intn(1_000_000_000)
+	d.SetId(kafkaID + strconv.Itoa(idNumber))
+
 	return diags
 }
 
-func setResourceDataFromAclData(d *schema.ResourceData, kafka *kafkamgmtclient.KafkaRequest) error {
+func setResourceDataFromAclData(ctx context.Context, d *schema.ResourceData, instanceApi *kafkainstanceclient.APIClient) error {
 	var err error
 
-	if err = d.Set("cloud_provider", kafka.GetCloudProvider()); err != nil {
+	binding, err := mapResourceDataToAclBinding(d)
+	if err != nil {
 		return err
 	}
 
-	if err = d.Set("region", kafka.GetRegion()); err != nil {
+	aclList, _, err := instanceApi.AclsApi.
+		GetAcls(ctx).
+		Principal(binding.GetPrincipal()).
+		ResourceType(kafkainstanceclient.AclResourceTypeFilter(binding.GetResourceType())).
+		ResourceName(binding.GetResourceName()).
+		PatternType(kafkainstanceclient.AclPatternTypeFilter(binding.GetPatternType())).
+		Operation(kafkainstanceclient.AclOperationFilter(binding.GetOperation())).
+		Permission(kafkainstanceclient.AclPermissionTypeFilter(binding.GetPermission())).
+		Execute()
+
+	if err != nil {
 		return err
 	}
 
-	if err = d.Set("name", kafka.GetName()); err != nil {
+	if len(aclList.GetItems()) < 1 {
+		return errors.Errorf("No ACLs matched the ACL trying to be read")
+	}
+
+	acl := aclList.GetItems()[0]
+
+	// the acl binding principal needs to be prefixed with User:
+	// we support adding this is in the provider so we need to remove it
+	// when setting back our
+	principal := acl.GetPrincipal()
+	if strings.HasPrefix(principal, PrincipalPrefix) {
+		principal = strings.TrimPrefix(principal, PrincipalPrefix)
+	}
+
+	if err = d.Set("principal", principal); err != nil {
 		return err
 	}
 
-	if err = d.Set("href", kafka.GetHref()); err != nil {
+	if err = d.Set("resource_type", acl.GetResourceType()); err != nil {
 		return err
 	}
 
-	if err = d.Set("status", kafka.GetStatus()); err != nil {
+	if err = d.Set("resource_name", acl.GetResourceName()); err != nil {
 		return err
 	}
 
-	if err = d.Set("owner", kafka.GetOwner()); err != nil {
+	if err = d.Set("pattern_type", acl.GetPatternType()); err != nil {
 		return err
 	}
 
-	if err = d.Set("bootstrap_server_host", kafka.GetBootstrapServerHost()); err != nil {
+	if err = d.Set("operation_type", acl.GetOperation()); err != nil {
 		return err
 	}
 
-	if err = d.Set("created_at", kafka.GetCreatedAt().Format(time.RFC3339)); err != nil {
-		return err
-	}
-
-	if err = d.Set("updated_at", kafka.GetUpdatedAt().Format(time.RFC3339)); err != nil {
-		return err
-	}
-
-	if err = d.Set("id", kafka.GetId()); err != nil {
-		return err
-	}
-
-	if err = d.Set("kind", kafka.GetKind()); err != nil {
-		return err
-	}
-
-	if err = d.Set("version", kafka.GetVersion()); err != nil {
+	if err = d.Set("permission_type", acl.GetPermission()); err != nil {
 		return err
 	}
 
@@ -184,36 +214,40 @@ func mapResourceDataToAclBinding(d *schema.ResourceData) (*kafkainstanceclient.A
 		return nil, errors.Errorf("There was a problem getting the principal value in the schema resource")
 	}
 
-	resource_type, ok := d.Get("resource_type").(string)
+	principal = PrincipalPrefix + principal
+
+	resourceType, ok := d.Get("resource_type").(string)
 	if !ok {
 		return nil, errors.Errorf("There was a problem getting the resource type value in the schema resource")
 	}
 
-	resource_name, ok := d.Get("resource_name").(string)
+	resourceName, ok := d.Get("resource_name").(string)
 	if !ok {
 		return nil, errors.Errorf("There was a problem getting the resource name value in the schema resource")
 	}
 
-	pattern_type, ok := d.Get("pattern_type").(string)
+	patternType, ok := d.Get("pattern_type").(string)
 	if !ok {
 		return nil, errors.Errorf("There was a problem getting the pattern type value in the schema resource")
 	}
 
-	operation_type, ok := d.Get("operation_type").(string)
+	operationType, ok := d.Get("operation_type").(string)
 	if !ok {
 		return nil, errors.Errorf("There was a problem getting the operation type value in the schema resource")
 	}
 
-	permission_type, ok := d.Get("permission_type").(string)
+	permissionType, ok := d.Get("permission_type").(string)
 	if !ok {
 		return nil, errors.Errorf("There was a problem getting the permission type value in the schema resource")
 	}
 
 	binding := kafkainstanceclient.NewAclBinding(
-		kafkainstanceclient.AclResourceType(resource_type),
-		resource_name, kafkainstanceclient.AclPatternType(pattern_type),
-		principal, kafkainstanceclient.AclOperation(operation_type),
-		kafkainstanceclient.AclPermissionType(permission_type),
+		kafkainstanceclient.AclResourceType(resourceType),
+		resourceName,
+		kafkainstanceclient.AclPatternType(patternType),
+		principal,
+		kafkainstanceclient.AclOperation(operationType),
+		kafkainstanceclient.AclPermissionType(permissionType),
 	)
 
 	return binding, nil
