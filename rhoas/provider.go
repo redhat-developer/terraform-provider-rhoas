@@ -65,6 +65,7 @@ func Provider() *schema.Provider {
 			"rhoas_kafkas":                 kafkas.DataSourceKafkas(),
 			"rhoas_kafka":                  kafkas.DataSourceKafka(),
 			"rhoas_topic":                  topics.DataSourceTopic(),
+			"rhoas_service_account":        serviceaccounts.DataSourceServiceAccount(),
 			"rhoas_service_accounts":       serviceaccounts.DataSourceServiceAccounts(),
 		},
 		ConfigureContextFunc: providerConfigure,

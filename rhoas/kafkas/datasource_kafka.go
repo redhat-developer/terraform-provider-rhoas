@@ -14,73 +14,63 @@ func DataSourceKafka() *schema.Resource {
 		Description: "`rhoas_kafka` provides a Kafka accessible to your organization in Red Hat OpenShift Streams for Apache Kafka.",
 		ReadContext: dataSourceKafkaRead,
 		Schema: map[string]*schema.Schema{
-			"cloud_provider": {
+			CloudProviderField: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The cloud provider to use. A list of available cloud providers can be obtained using `data.rhoas_cloud_providers`.",
 			},
-			"multi_az": {
-				Type:        schema.TypeBool,
-				Computed:    true,
-				Description: "Whether the Kafka instance should be highly available by supporting multi-az",
-			},
-			"region": {
+			RegionField: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The region to use. A list of available regions can be obtained using `data.rhoas_cloud_providers_regions`.",
 			},
-			"name": {
+			NameField: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The name of the Kafka instance",
 			},
-			"href": {
+			HrefField: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The path to the Kafka instance in the REST API",
 			},
-			"status": {
+			StatusField: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The status of the Kafka instance",
 			},
-			"owner": {
+			OwnerField: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The username of the Red Hat account that owns the Kafka instance",
 			},
-			"bootstrap_server_host": {
+			BootstrapServerHostField: {
 				Description: "The bootstrap server (host:port)",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
-			"created_at": {
+			CreatedAtField: {
 				Description: "The RFC3339 date and time at which the Kafka instance was created",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
-			"updated_at": {
+			UpdatedAtField: {
 				Description: "The RFC3339 date and time at which the Kafka instance was last updated",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
-			"id": {
+			IDField: {
 				Description: "The unique identifier for the Kafka instance",
 				Type:        schema.TypeString,
 				Required:    true,
 			},
-			"kind": {
+			KindField: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The kind of resource in the API",
 			},
-			"version": {
+			VersionField: {
 				Description: "The version of Kafka the instance is using",
-				Type:        schema.TypeString,
-				Computed:    true,
-			},
-			"failed_reason": {
-				Description: "The reason the instance failed",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
@@ -97,7 +87,7 @@ func dataSourceKafkaRead(ctx context.Context, d *schema.ResourceData, m interfac
 		return diag.Errorf("unable to cast %v to rhoasAPI.Clients)", m)
 	}
 
-	val := d.Get("id")
+	val := d.Get(IDField)
 	id, ok := val.(string)
 	if !ok {
 		return diag.Errorf("unable to cast %v to string for use as for kafka id", val)

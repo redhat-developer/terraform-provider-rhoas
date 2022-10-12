@@ -2,9 +2,9 @@ package serviceaccounts
 
 import (
 	"context"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/pkg/errors"
 	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 )
@@ -14,44 +14,30 @@ func DataSourceServiceAccount() *schema.Resource {
 		Description: "`rhoas_service_account` provides a service account accessible to your organization in Red Hat OpenShift Streams for Apache Kafka.",
 		ReadContext: dataSourceServiceAccountRead,
 		Schema: map[string]*schema.Schema{
-			"client_id": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The client id associated with the service account",
-			},
-			"href": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"description": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "A description of the service account",
-			},
-			"id": {
-				Description: "The unique identifier for the service account",
+			IDField: {
+				Description: "The unique id fir the service account",
 				Type:        schema.TypeString,
 				Required:    true,
 			},
-			"kind": {
+			DescriptionField: {
+				Description: "A description of the service account",
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The kind of resource in the API",
 			},
-			"name": {
+			NameField: {
 				Description: "The name of the service account",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
-			"owner": {
+			ClientIDField: {
+				Description: "The client id associated with the service account",
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The username of the Red Hat account that owns the service account",
 			},
-			"created_at": {
+			ClientSecret: {
+				Description: "The client secret associated with the service account. It must be stored by the client as the server will not return it after creation",
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The RFC3339 date and time at which the service account was created",
 			},
 		},
 	}
@@ -65,10 +51,9 @@ func dataSourceServiceAccountRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.Errorf("unable to cast %v to rhoasAPI.Clients)", m)
 	}
 
-	val := d.Get("id")
-	id, ok := val.(string)
+	id, ok := d.Get(IDField).(string)
 	if !ok {
-		return diag.Errorf("unable to cast %v to string for use as for service account id", val)
+		return diag.FromErr(errors.Errorf("Could not retrieve client id in service account data source"))
 	}
 
 	serviceAccount, resp, err := api.ServiceAccountMgmt().GetServiceAccount(ctx, id).Execute()
@@ -82,6 +67,8 @@ func dataSourceServiceAccountRead(ctx context.Context, d *schema.ResourceData, m
 	if err != nil {
 		return diag.FromErr(err)
 	}
+
+	d.SetId(id)
 
 	return diags
 }
