@@ -15,6 +15,7 @@ provider "rhoas" {
 }
 ```
 ### Commands
+- `make clean`
 - `make install`
 - `terraform init`
 - `terraform apply`
