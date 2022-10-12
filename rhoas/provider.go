@@ -3,18 +3,18 @@ package rhoas
 import (
 	"context"
 	"fmt"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/acls"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/acls"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	authAPI "github.com/redhat-developer/app-services-sdk-go/auth/apiv1"
 	kafkamgmt "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1"
 	serviceAccounts "github.com/redhat-developer/app-services-sdk-go/serviceaccountmgmt/apiv1/client"
-	rhoasClients "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/clients"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/cloudproviders"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/kafkas"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/serviceaccounts"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/topics"
+	rhoasClients "github.com/redhat-developer/terraform-provider-rhoas/rhoas/clients"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/cloudproviders"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/kafkas"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/serviceaccounts"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/topics"
 )
 
 // Generate the Terraform provider documentation using `tfplugindocs`:

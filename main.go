@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas"
 )
 
 func main() {

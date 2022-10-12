@@ -3,7 +3,7 @@ package kafkas
 import (
 	"context"
 	kafkainstanceclient "github.com/redhat-developer/app-services-sdk-go/kafkainstance/apiv1/client"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/acls"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/acls"
 	"strings"
 	"time"
 
@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
 	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
-	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
+	rhoasAPI "github.com/redhat-developer/terraform-provider-rhoas/rhoas/api"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/utils"
 )
 
 const (

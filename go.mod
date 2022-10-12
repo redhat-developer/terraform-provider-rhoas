@@ -1,4 +1,4 @@
-module redhat.com/rhoas/rhoas-terraform-provider/m
+module github.com/redhat-developer/terraform-provider-rhoas
 
 require (
 	github.com/hashicorp/terraform-plugin-docs v0.13.0
@@ -8,6 +8,7 @@ require (
 	github.com/redhat-developer/app-services-sdk-go/kafkainstance v0.9.0
 	github.com/redhat-developer/app-services-sdk-go/kafkamgmt v0.13.0
 	github.com/redhat-developer/app-services-sdk-go/serviceaccountmgmt v0.9.0
+	github.com/nicksnyder/go-i18n/v2 v2.2.0
 )
 
 require (

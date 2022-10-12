@@ -5,8 +5,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
+	rhoasAPI "github.com/redhat-developer/terraform-provider-rhoas/rhoas/api"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/utils"
 )
 
 func DataSourceKafka() *schema.Resource {
