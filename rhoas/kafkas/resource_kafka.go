@@ -16,6 +16,22 @@ import (
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 )
 
+const (
+	CloudProviderField       = "cloud_provider"
+	RegionField              = "region"
+	NameField                = "name"
+	HrefField                = "href"
+	StatusField              = "status"
+	OwnerField               = "owner"
+	BootstrapServerHostField = "bootstrap_server_host"
+	CreatedAtField           = "created_at"
+	UpdatedAtField           = "updated_at"
+	IDField                  = "id"
+	KindField                = "kind"
+	VersionField             = "version"
+	ACLField                 = "acl"
+)
+
 func ResourceKafka() *schema.Resource {
 	return &schema.Resource{
 		Description:   "`rhoas_kafka` manages a Kafka instance in Red Hat OpenShift Streams for Apache Kafka.",
@@ -26,72 +42,72 @@ func ResourceKafka() *schema.Resource {
 			Create: schema.DefaultTimeout(20 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
-			"cloud_provider": {
+			CloudProviderField: {
 				Description: "The cloud provider to use. A list of available cloud providers can be obtained using `data.rhoas_cloud_providers`.",
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "aws",
 				ForceNew:    true,
 			},
-			"region": {
+			RegionField: {
 				Description: "The region to use. A list of available regions can be obtained using `data.rhoas_cloud_providers_regions`.",
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "us-east-1",
 				ForceNew:    true,
 			},
-			"name": {
+			NameField: {
 				Description: "The name of the Kafka instance",
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 			},
-			"href": {
+			HrefField: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The path to the Kafka instance in the REST API",
 			},
-			"status": {
+			StatusField: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The status of the Kafka instance",
 			},
-			"owner": {
+			OwnerField: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The username of the Red Hat account that owns the Kafka instance",
 			},
-			"bootstrap_server_host": {
+			BootstrapServerHostField: {
 				Description: "The bootstrap server (host:port)",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
-			"created_at": {
+			CreatedAtField: {
 				Description: "The RFC3339 date and time at which the Kafka instance was created",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
-			"updated_at": {
+			UpdatedAtField: {
 				Description: "The RFC3339 date and time at which the Kafka instance was last updated",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
-			"id": {
+			IDField: {
 				Description: "The unique identifier for the Kafka instance",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
-			"kind": {
+			KindField: {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The kind of resource in the API",
 			},
-			"version": {
+			VersionField: {
 				Description: "The version of Kafka the instance is using",
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
-			"acl": {
+			ACLField: {
 				Type:     schema.TypeList,
 				ForceNew: true,
 				Optional: true,
@@ -266,7 +282,7 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 
 func createACLForKafka(ctx context.Context, api rhoasAPI.Clients, d *schema.ResourceData, kafka *kafkamgmtclient.KafkaRequest) error {
 
-	aclInput := d.Get("acl")
+	aclInput := d.Get(ACLField)
 	if aclInput == nil {
 		// no input was given for acl so do nothing
 		return nil
@@ -283,7 +299,7 @@ func createACLForKafka(ctx context.Context, api rhoasAPI.Clients, d *schema.Reso
 			return errors.Errorf("Cannot cast contents of acl to a map[string]interface{}")
 		}
 
-		principal, ok := element["principal"].(string)
+		principal, ok := element[acls.PrincipalField].(string)
 		if !ok {
 			return errors.Errorf("There was a problem getting the principal value in the kafka acl")
 		}
@@ -343,51 +359,51 @@ func createACLForKafka(ctx context.Context, api rhoasAPI.Clients, d *schema.Reso
 func setResourceDataFromKafkaData(d *schema.ResourceData, kafka *kafkamgmtclient.KafkaRequest) error {
 	var err error
 
-	if err = d.Set("cloud_provider", kafka.GetCloudProvider()); err != nil {
+	if err = d.Set(CloudProviderField, kafka.GetCloudProvider()); err != nil {
 		return err
 	}
 
-	if err = d.Set("region", kafka.GetRegion()); err != nil {
+	if err = d.Set(RegionField, kafka.GetRegion()); err != nil {
 		return err
 	}
 
-	if err = d.Set("name", kafka.GetName()); err != nil {
+	if err = d.Set(NameField, kafka.GetName()); err != nil {
 		return err
 	}
 
-	if err = d.Set("href", kafka.GetHref()); err != nil {
+	if err = d.Set(HrefField, kafka.GetHref()); err != nil {
 		return err
 	}
 
-	if err = d.Set("status", kafka.GetStatus()); err != nil {
+	if err = d.Set(StatusField, kafka.GetStatus()); err != nil {
 		return err
 	}
 
-	if err = d.Set("owner", kafka.GetOwner()); err != nil {
+	if err = d.Set(OwnerField, kafka.GetOwner()); err != nil {
 		return err
 	}
 
-	if err = d.Set("bootstrap_server_host", kafka.GetBootstrapServerHost()); err != nil {
+	if err = d.Set(BootstrapServerHostField, kafka.GetBootstrapServerHost()); err != nil {
 		return err
 	}
 
-	if err = d.Set("created_at", kafka.GetCreatedAt().Format(time.RFC3339)); err != nil {
+	if err = d.Set(CreatedAtField, kafka.GetCreatedAt().Format(time.RFC3339)); err != nil {
 		return err
 	}
 
-	if err = d.Set("updated_at", kafka.GetUpdatedAt().Format(time.RFC3339)); err != nil {
+	if err = d.Set(UpdatedAtField, kafka.GetUpdatedAt().Format(time.RFC3339)); err != nil {
 		return err
 	}
 
-	if err = d.Set("id", kafka.GetId()); err != nil {
+	if err = d.Set(IDField, kafka.GetId()); err != nil {
 		return err
 	}
 
-	if err = d.Set("kind", kafka.GetKind()); err != nil {
+	if err = d.Set(KindField, kafka.GetKind()); err != nil {
 		return err
 	}
 
-	if err = d.Set("version", kafka.GetVersion()); err != nil {
+	if err = d.Set(VersionField, kafka.GetVersion()); err != nil {
 		return err
 	}
 
@@ -399,17 +415,17 @@ func mapResourceDataToKafkaPayload(d *schema.ResourceData) (*kafkamgmtclient.Kaf
 	// we only set these values from the resource data as all the rest are set as
 	// computed in the schema and for us the computed values are assigned when we
 	// get the kafka request object back from the API
-	cloudProvider, ok := d.Get("cloud_provider").(string)
+	cloudProvider, ok := d.Get(CloudProviderField).(string)
 	if !ok {
 		return nil, errors.Errorf("There was a problem getting the cloud provider value in the schema resource")
 	}
 
-	region, ok := d.Get("region").(string)
+	region, ok := d.Get(RegionField).(string)
 	if !ok {
 		return nil, errors.Errorf("There was a problem getting the region value in the schema resource")
 	}
 
-	name, ok := d.Get("name").(string)
+	name, ok := d.Get(NameField).(string)
 	if !ok {
 		return nil, errors.Errorf("There was a problem getting the name value in the schema resource")
 	}

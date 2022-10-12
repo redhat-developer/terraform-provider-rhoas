@@ -55,7 +55,7 @@ output "client_secret" {
 
 - `client_id` (String) The client id associated with the service account
 - `client_secret` (String) The client secret associated with the service account. It must be stored by the client as the server will not return it after creation
-- `id` (String) The ID of this resource.
+- `id` (String) The unique id fir the service account
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

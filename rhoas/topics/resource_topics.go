@@ -12,6 +12,12 @@ import (
 	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 )
 
+const (
+	NameField       = "name"
+	PartitionsField = "partitions"
+	KafkaIDField    = "kafka_id"
+)
+
 func ResourceTopic() *schema.Resource {
 	return &schema.Resource{
 		Description:   "`rhoas_topic` manages a topic in a  Kafka instance in Red Hat OpenShift Streams for Apache Kafka.",
@@ -22,19 +28,19 @@ func ResourceTopic() *schema.Resource {
 			Create: schema.DefaultTimeout(20 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
-			"name": {
+			NameField: {
 				Description: "The name of the topic",
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 			},
-			"partitions": {
+			PartitionsField: {
 				Description: "The number of partitions in the topic",
 				Type:        schema.TypeInt,
 				Required:    true,
 				ForceNew:    true,
 			},
-			"kafka_id": {
+			KafkaIDField: {
 				Description: "The unique ID of the kafka instance this topic is associated with",
 				Type:        schema.TypeString,
 				Required:    true,
@@ -53,12 +59,12 @@ func topicDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		return diag.Errorf("unable to cast %v to rhoasAPI.Clients", m)
 	}
 
-	kafkaID, ok := d.Get("kafka_id").(string)
+	kafkaID, ok := d.Get(KafkaIDField).(string)
 	if !ok {
 		return diag.FromErr(errors.Errorf("There was a problem getting the kafka ID value in the schema resource"))
 	}
 
-	topicName, ok := d.Get("name").(string)
+	topicName, ok := d.Get(NameField).(string)
 	if !ok {
 		return diag.FromErr(errors.Errorf("There was a problem getting the topic name value in the schema resource"))
 	}
@@ -88,12 +94,12 @@ func topicRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 		return diag.Errorf("unable to cast %v to rhoasAPI.Clients", m)
 	}
 
-	kafkaID, ok := d.Get("kafka_id").(string)
+	kafkaID, ok := d.Get(KafkaIDField).(string)
 	if !ok {
 		return diag.FromErr(errors.Errorf("There was a problem getting the kafka ID value in the schema resource"))
 	}
 
-	topicName, ok := d.Get("name").(string)
+	topicName, ok := d.Get(NameField).(string)
 	if !ok {
 		return diag.FromErr(errors.Errorf("There was a problem getting the topic name value in the schema resource"))
 	}
@@ -127,7 +133,7 @@ func topicCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		return diag.Errorf("unable to cast %v to rhoasAPI.Clients", m)
 	}
 
-	kafkaID, ok := d.Get("kafka_id").(string)
+	kafkaID, ok := d.Get(KafkaIDField).(string)
 	if !ok {
 		return diag.FromErr(errors.Errorf("There was a problem getting the kafka ID value in the schema resource"))
 	}
@@ -158,7 +164,7 @@ func topicCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 
 	d.SetId(topic.GetId())
 
-	if err = d.Set("kafka_id", kafkaID); err != nil {
+	if err = d.Set(KafkaIDField, kafkaID); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -168,11 +174,11 @@ func topicCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 func setResourceDataFromTopic(d *schema.ResourceData, topic *kafkainstanceclient.Topic) error {
 	var err error
 
-	if err = d.Set("name", topic.GetName()); err != nil {
+	if err = d.Set(NameField, topic.GetName()); err != nil {
 		return err
 	}
 
-	if err = d.Set("partitions", len(topic.GetPartitions())); err != nil {
+	if err = d.Set(PartitionsField, len(topic.GetPartitions())); err != nil {
 		return err
 	}
 
@@ -181,12 +187,12 @@ func setResourceDataFromTopic(d *schema.ResourceData, topic *kafkainstanceclient
 
 func mapResourceDataToTopicRequest(d *schema.ResourceData, request *kafkainstanceclient.ApiCreateTopicRequest) error {
 
-	name, ok := d.Get("name").(string)
+	name, ok := d.Get(NameField).(string)
 	if !ok {
 		return errors.Errorf("There was a problem getting the name value in the schema resource")
 	}
 
-	partitions, ok := d.Get("partitions").(int)
+	partitions, ok := d.Get(PartitionsField).(int)
 	if !ok {
 		return errors.Errorf("There was a problem getting the partition value in the schema resource")
 	}
