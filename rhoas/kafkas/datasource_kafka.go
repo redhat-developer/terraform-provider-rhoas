@@ -2,6 +2,7 @@ package kafkas
 
 import (
 	"context"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/localize"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -84,13 +85,12 @@ func dataSourceKafkaRead(ctx context.Context, d *schema.ResourceData, m interfac
 
 	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
-		return diag.Errorf("unable to cast %v to rhoasAPI.Factory)", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Factory", m)
 	}
 
-	val := d.Get(IDField)
-	id, ok := val.(string)
+	id, ok := d.Get(IDField).(string)
 	if !ok {
-		return diag.Errorf("unable to cast %v to string for use as for kafka id", val)
+		return diag.FromErr(factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", IDField)))
 	}
 
 	kafka, resp, err := factory.KafkaMgmt().GetKafkaById(ctx, id).Execute()

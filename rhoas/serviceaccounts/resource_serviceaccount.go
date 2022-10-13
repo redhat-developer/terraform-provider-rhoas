@@ -2,14 +2,13 @@ package serviceaccounts
 
 import (
 	"context"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/pkg/errors"
 	serviceAccounts "github.com/redhat-developer/app-services-sdk-go/serviceaccountmgmt/apiv1/client"
 	rhoasAPI "github.com/redhat-developer/terraform-provider-rhoas/rhoas/api"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/localize"
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/utils"
 )
 
@@ -79,7 +78,7 @@ func serviceAccountDelete(ctx context.Context, d *schema.ResourceData, m interfa
 
 	id, ok := d.Get(IDField).(string)
 	if !ok {
-		return diag.FromErr(errors.Errorf("There was a problem getting the id value in the schema resource"))
+		return diag.FromErr(factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", IDField)))
 	}
 
 	resp, err := factory.ServiceAccountMgmt().DeleteServiceAccount(ctx, id).Execute()
@@ -99,7 +98,7 @@ func serviceAccountRead(ctx context.Context, d *schema.ResourceData, m interface
 
 	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
-		return diag.Errorf("unable to cast %v to rhoasAPI.Factory)", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Factory", m)
 	}
 
 	// the resource data ID field is the same as the service account id which is set when the
@@ -125,12 +124,10 @@ func serviceAccountCreate(ctx context.Context, d *schema.ResourceData, m interfa
 
 	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
-		return diag.Errorf("unable to cast %v to rhoasAPI.Factory)", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Factory", m)
 	}
 
-	tflog.Error(ctx, factory.Localizer().MustLocalize("service_account.error.no_name"))
-
-	request, err := mapResourceDataToServiceAccountCreateRequest(d)
+	request, err := mapResourceDataToServiceAccountCreateRequest(factory, d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -152,19 +149,21 @@ func serviceAccountCreate(ctx context.Context, d *schema.ResourceData, m interfa
 	return diags
 }
 
-func mapResourceDataToServiceAccountCreateRequest(d *schema.ResourceData) (*serviceAccounts.ServiceAccountCreateRequestData, error) {
+func mapResourceDataToServiceAccountCreateRequest(factory rhoasAPI.Factory, d *schema.ResourceData) (*serviceAccounts.ServiceAccountCreateRequestData, error) {
 
 	// we only set these values from the resource data as all the rest are set as
 	// computed in the schema and for us the computed values are assigned when we
 	// get the create request object back from the API
 	description, ok := d.Get(DescriptionField).(string)
 	if !ok {
-		return nil, errors.Errorf("There was a problem getting the description value in the schema resource")
+		return nil, factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", DescriptionField))
+
 	}
 
 	name, ok := d.Get(NameField).(string)
 	if !ok {
-		return nil, errors.Errorf("There was a problem getting the name value in the schema resource")
+		return nil, factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", NameField))
+
 	}
 
 	request := serviceAccounts.NewServiceAccountCreateRequestData(name)

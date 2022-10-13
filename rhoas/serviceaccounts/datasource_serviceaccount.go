@@ -4,8 +4,8 @@ import (
 	"context"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/pkg/errors"
 	rhoasAPI "github.com/redhat-developer/terraform-provider-rhoas/rhoas/api"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/localize"
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/utils"
 )
 
@@ -53,7 +53,7 @@ func dataSourceServiceAccountRead(ctx context.Context, d *schema.ResourceData, m
 
 	id, ok := d.Get(IDField).(string)
 	if !ok {
-		return diag.FromErr(errors.Errorf("Could not retrieve client id in service account data source"))
+		return diag.FromErr(factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", IDField)))
 	}
 
 	serviceAccount, resp, err := factory.ServiceAccountMgmt().GetServiceAccount(ctx, id).Execute()

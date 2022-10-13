@@ -2,11 +2,11 @@ package topics
 
 import (
 	"context"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/localize"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/pkg/errors"
 	kafkainstanceclient "github.com/redhat-developer/app-services-sdk-go/kafkainstance/apiv1/client"
 	rhoasAPI "github.com/redhat-developer/terraform-provider-rhoas/rhoas/api"
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/utils"
@@ -61,12 +61,13 @@ func topicDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 
 	kafkaID, ok := d.Get(KafkaIDField).(string)
 	if !ok {
-		return diag.FromErr(errors.Errorf("There was a problem getting the kafka ID value in the schema resource"))
+		return diag.FromErr(factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", KafkaIDField)))
+
 	}
 
 	topicName, ok := d.Get(NameField).(string)
 	if !ok {
-		return diag.FromErr(errors.Errorf("There was a problem getting the topic name value in the schema resource"))
+		return diag.FromErr(factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", NameField)))
 	}
 
 	instanceAPI, _, err := factory.KafkaAdmin(&ctx, kafkaID)
@@ -96,12 +97,12 @@ func topicRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 
 	kafkaID, ok := d.Get(KafkaIDField).(string)
 	if !ok {
-		return diag.FromErr(errors.Errorf("There was a problem getting the kafka ID value in the schema resource"))
+		return diag.FromErr(factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", KafkaIDField)))
 	}
 
 	topicName, ok := d.Get(NameField).(string)
 	if !ok {
-		return diag.FromErr(errors.Errorf("There was a problem getting the topic name value in the schema resource"))
+		return diag.FromErr(factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", NameField)))
 	}
 
 	instanceAPI, _, err := factory.KafkaAdmin(&ctx, kafkaID)
@@ -135,7 +136,7 @@ func topicCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 
 	kafkaID, ok := d.Get(KafkaIDField).(string)
 	if !ok {
-		return diag.FromErr(errors.Errorf("There was a problem getting the kafka ID value in the schema resource"))
+		return diag.FromErr(factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", KafkaIDField)))
 	}
 
 	instanceAPI, _, err := factory.KafkaAdmin(&ctx, kafkaID)
@@ -145,7 +146,7 @@ func topicCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 
 	topicRequest := instanceAPI.TopicsApi.CreateTopic(ctx)
 
-	err = mapResourceDataToTopicRequest(d, &topicRequest)
+	err = mapResourceDataToTopicRequest(factory, d, &topicRequest)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -185,16 +186,16 @@ func setResourceDataFromTopic(d *schema.ResourceData, topic *kafkainstanceclient
 	return nil
 }
 
-func mapResourceDataToTopicRequest(d *schema.ResourceData, request *kafkainstanceclient.ApiCreateTopicRequest) error {
+func mapResourceDataToTopicRequest(factory rhoasAPI.Factory, d *schema.ResourceData, request *kafkainstanceclient.ApiCreateTopicRequest) error {
 
 	name, ok := d.Get(NameField).(string)
 	if !ok {
-		return errors.Errorf("There was a problem getting the name value in the schema resource")
+		return factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", NameField))
 	}
 
 	partitions, ok := d.Get(PartitionsField).(int)
 	if !ok {
-		return errors.Errorf("There was a problem getting the partition value in the schema resource")
+		return factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", PartitionsField))
 	}
 
 	// terraform stores int types as just ints and fails if you

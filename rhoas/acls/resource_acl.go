@@ -3,13 +3,13 @@ package acls
 import (
 	"context"
 	kafkainstanceclient "github.com/redhat-developer/app-services-sdk-go/kafkainstance/apiv1/client"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/localize"
 	"math/rand"
 	"strconv"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/pkg/errors"
 	rhoasAPI "github.com/redhat-developer/terraform-provider-rhoas/rhoas/api"
 )
 
@@ -97,22 +97,22 @@ func aclCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Factory)
+	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
 		return diag.Errorf("unable to cast %v to rhoasAPI.Factory", m)
 	}
 
 	kafkaID, ok := d.Get(KafkaIDField).(string)
 	if !ok {
-		return diag.FromErr(errors.Errorf("There was a problem getting the kafka ID value in the schema resource"))
+		return diag.FromErr(factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", KafkaIDField)))
 	}
 
-	instanceAPI, _, err := api.KafkaAdmin(&ctx, kafkaID)
+	instanceAPI, _, err := factory.KafkaAdmin(&ctx, kafkaID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	binding, err := mapResourceDataToACLBinding(d)
+	binding, err := mapResourceDataToACLBinding(factory, d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -129,41 +129,41 @@ func aclCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 	return diags
 }
 
-func mapResourceDataToACLBinding(d *schema.ResourceData) (*kafkainstanceclient.AclBinding, error) {
+func mapResourceDataToACLBinding(factory rhoasAPI.Factory, d *schema.ResourceData) (*kafkainstanceclient.AclBinding, error) {
 
 	// we only set these values from the resource data as all the rest are set as
 	// computed in the schema and for us the computed values are assigned when we
 	// get the kafka request object back from the API
 	principal, ok := d.Get(PrincipalField).(string)
 	if !ok {
-		return nil, errors.Errorf("There was a problem getting the principal value in the schema resource")
+		return nil, factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", PrincipalField))
 	}
 
 	principal = PrincipalPrefix + principal
 
 	resourceType, ok := d.Get(ResourceTypeField).(string)
 	if !ok {
-		return nil, errors.Errorf("There was a problem getting the resource type value in the schema resource")
+		return nil, factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", ResourceTypeField))
 	}
 
 	resourceName, ok := d.Get(ResourceNameField).(string)
 	if !ok {
-		return nil, errors.Errorf("There was a problem getting the resource name value in the schema resource")
+		return nil, factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", ResourceNameField))
 	}
 
 	patternType, ok := d.Get(PatternTypeField).(string)
 	if !ok {
-		return nil, errors.Errorf("There was a problem getting the pattern type value in the schema resource")
+		return nil, factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", PatternTypeField))
 	}
 
 	operationType, ok := d.Get(OperationTypeField).(string)
 	if !ok {
-		return nil, errors.Errorf("There was a problem getting the operation type value in the schema resource")
+		return nil, factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", OperationTypeField))
 	}
 
 	permissionType, ok := d.Get(PermissionTypeField).(string)
 	if !ok {
-		return nil, errors.Errorf("There was a problem getting the permission type value in the schema resource")
+		return nil, factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", PermissionTypeField))
 	}
 
 	binding := kafkainstanceclient.NewAclBinding(

@@ -5,6 +5,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	rhoasAPI "github.com/redhat-developer/terraform-provider-rhoas/rhoas/api"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/localize"
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/utils"
 )
 
@@ -13,17 +14,17 @@ func DataSourceTopic() *schema.Resource {
 		Description: "`rhoas_topic` provides a Topic accessible to your organization in Red Hat OpenShift Streams for Apache Kafka.",
 		ReadContext: dataSourceTopicRead,
 		Schema: map[string]*schema.Schema{
-			"name": {
+			NameField: {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "The name of the Kafka topic",
 			},
-			"partitions": {
+			PartitionsField: {
 				Description: "The number of partitions in the topic",
 				Type:        schema.TypeInt,
 				Computed:    true,
 			},
-			"kafka_id": {
+			KafkaIDField: {
 				Description: "The unique identifier for the Kafka instance",
 				Type:        schema.TypeString,
 				Required:    true,
@@ -38,13 +39,12 @@ func dataSourceTopicRead(ctx context.Context, d *schema.ResourceData, m interfac
 
 	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
-		return diag.Errorf("unable to cast %v to rhoasAPI.Factory)", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Factory", m)
 	}
 
-	val := d.Get("kafka_id")
-	kafkaID, ok := val.(string)
+	kafkaID, ok := d.Get(KafkaIDField).(string)
 	if !ok {
-		return diag.Errorf("unable to cast %v to string for use as for kafka_id", val)
+		return diag.FromErr(factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", KafkaIDField)))
 	}
 
 	instanceAPI, _, err := factory.KafkaAdmin(&ctx, kafkaID)
@@ -52,10 +52,9 @@ func dataSourceTopicRead(ctx context.Context, d *schema.ResourceData, m interfac
 		return diag.FromErr(err)
 	}
 
-	val = d.Get("name")
-	name, ok := val.(string)
+	name, ok := d.Get(KafkaIDField).(string)
 	if !ok {
-		return diag.Errorf("unable to cast %v to string for use as for topic name", val)
+		return diag.FromErr(factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", NameField)))
 	}
 
 	topic, resp, err := instanceAPI.TopicsApi.GetTopic(ctx, name).Execute()
