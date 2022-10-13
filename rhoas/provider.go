@@ -10,8 +10,8 @@ import (
 	authAPI "github.com/redhat-developer/app-services-sdk-go/auth/apiv1"
 	kafkamgmt "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1"
 	serviceAccounts "github.com/redhat-developer/app-services-sdk-go/serviceaccountmgmt/apiv1/client"
-	rhoasClients "github.com/redhat-developer/terraform-provider-rhoas/rhoas/clients"
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/cloudproviders"
+	factories "github.com/redhat-developer/terraform-provider-rhoas/rhoas/factories"
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/kafkas"
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/serviceaccounts"
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/topics"
@@ -75,6 +75,13 @@ func Provider() *schema.Provider {
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
+
+	//localizer, err := goi18n.New(nil)
+	//if err != nil {
+	//	tflog.Error(ctx, err.Error())
+	//	os.Exit(1)
+	//}
+
 	httpClient := authAPI.BuildAuthenticatedHTTPClient(d.Get("offline_token").(string))
 
 	kafkaClient := kafkamgmt.NewAPIClient(&kafkamgmt.Config{
@@ -87,7 +94,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 
 	// package both service account client and kafka client together to be used in the provider
 	// these are passed to each action we do and can be use to CRUD kafkas/serviceAccounts
-	client := rhoasClients.NewDefaultClient(kafkaClient, serviceAccountClient, httpClient)
+	client := factories.NewDefaultFactory(kafkaClient, serviceAccountClient, httpClient)
 
 	return client, diags
 }

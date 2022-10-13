@@ -124,9 +124,9 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Clients)
+	api, ok := m.(rhoasAPI.Factory)
 	if !ok {
-		return diag.Errorf("unable to cast %v to rhoasAPI.Clients)", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Factory)", m)
 	}
 
 	apiErr, _, err := api.KafkaMgmt().DeleteKafkaById(ctx, d.Id()).Async(true).Execute()
@@ -183,9 +183,9 @@ func kafkaRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Clients)
+	api, ok := m.(rhoasAPI.Factory)
 	if !ok {
-		return diag.Errorf("unable to cast %v to rhoasAPI.Clients)", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Factory)", m)
 	}
 
 	kafka, resp, err := api.KafkaMgmt().GetKafkaById(ctx, d.Id()).Execute()
@@ -207,9 +207,9 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Clients)
+	api, ok := m.(rhoasAPI.Factory)
 	if !ok {
-		return diag.Errorf("unable to cast %v to rhoasAPI.Clients)", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Factory)", m)
 	}
 
 	requestPayload, err := mapResourceDataToKafkaPayload(d)
@@ -280,7 +280,7 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	return diags
 }
 
-func createACLForKafka(ctx context.Context, api rhoasAPI.Clients, d *schema.ResourceData, kafka *kafkamgmtclient.KafkaRequest) error {
+func createACLForKafka(ctx context.Context, api rhoasAPI.Factory, d *schema.ResourceData, kafka *kafkamgmtclient.KafkaRequest) error {
 
 	aclInput := d.Get(ACLField)
 	if aclInput == nil {

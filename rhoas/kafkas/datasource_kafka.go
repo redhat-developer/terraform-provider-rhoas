@@ -82,9 +82,9 @@ func dataSourceKafkaRead(ctx context.Context, d *schema.ResourceData, m interfac
 
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Clients)
+	api, ok := m.(rhoasAPI.Factory)
 	if !ok {
-		return diag.Errorf("unable to cast %v to rhoasAPI.Clients)", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Factory)", m)
 	}
 
 	val := d.Get(IDField)

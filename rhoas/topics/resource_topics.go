@@ -54,9 +54,9 @@ func topicDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Clients)
+	api, ok := m.(rhoasAPI.Factory)
 	if !ok {
-		return diag.Errorf("unable to cast %v to rhoasAPI.Clients", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Factory", m)
 	}
 
 	kafkaID, ok := d.Get(KafkaIDField).(string)
@@ -89,9 +89,9 @@ func topicRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Clients)
+	api, ok := m.(rhoasAPI.Factory)
 	if !ok {
-		return diag.Errorf("unable to cast %v to rhoasAPI.Clients", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Factory", m)
 	}
 
 	kafkaID, ok := d.Get(KafkaIDField).(string)
@@ -128,9 +128,9 @@ func topicCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Clients)
+	api, ok := m.(rhoasAPI.Factory)
 	if !ok {
-		return diag.Errorf("unable to cast %v to rhoasAPI.Clients", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Factory", m)
 	}
 
 	kafkaID, ok := d.Get(KafkaIDField).(string)

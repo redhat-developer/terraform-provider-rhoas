@@ -1,14 +1,16 @@
 module github.com/redhat-developer/terraform-provider-rhoas
 
 require (
+	github.com/BurntSushi/toml v1.0.0
 	github.com/hashicorp/terraform-plugin-docs v0.13.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.21.0
+	github.com/nicksnyder/go-i18n/v2 v2.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/redhat-developer/app-services-sdk-go/auth v0.1.0
 	github.com/redhat-developer/app-services-sdk-go/kafkainstance v0.9.0
 	github.com/redhat-developer/app-services-sdk-go/kafkamgmt v0.13.0
 	github.com/redhat-developer/app-services-sdk-go/serviceaccountmgmt v0.9.0
-	github.com/nicksnyder/go-i18n/v2 v2.2.0
+	gopkg.in/yaml.v2 v2.3.0
 )
 
 require (
@@ -73,7 +75,7 @@ require (
 	golang.org/x/net v0.0.0-20220624214902-1bab6f366d9e // indirect
 	golang.org/x/oauth2 v0.0.0-20220630143837-2104d58473e0 // indirect
 	golang.org/x/sys v0.0.0-20220627191245-f75cf1eec38b // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/text v0.3.7
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220616135557-88e70c0c3a90 // indirect
 	google.golang.org/grpc v1.48.0 // indirect

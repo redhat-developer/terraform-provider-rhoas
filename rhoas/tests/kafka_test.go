@@ -114,7 +114,7 @@ func testAccCheckKafkaDestroy(s *terraform.State) error {
 	// retrieve the connection established in Provider configuration
 	api, ok := testAccRHOAS.Meta().(rhoasAPI.Clients)
 	if !ok {
-		return errors.Errorf("unable to cast %v to rhoasAPI.Clients)", testAccRHOAS.Meta())
+		return errors.Errorf("unable to cast %v to rhoasAPI.Factory)", testAccRHOAS.Meta())
 	}
 
 	// loop through the resources in state, verifying each widget of type rhoas_kafka is destroyed
@@ -152,7 +152,7 @@ func testAccCheckKafkaExists(resource string, kafka *kafkamgmtclient.KafkaReques
 
 		api, ok := testAccRHOAS.Meta().(rhoasAPI.Clients)
 		if !ok {
-			return errors.Errorf("unable to cast %v to rhoasAPI.Clients)", testAccRHOAS.Meta())
+			return errors.Errorf("unable to cast %v to rhoasAPI.Factory)", testAccRHOAS.Meta())
 		}
 		gotKafka, resp, err := api.KafkaMgmt().GetKafkaById(context.Background(), rs.Primary.ID).Execute()
 		if err != nil {

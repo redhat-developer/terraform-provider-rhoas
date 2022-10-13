@@ -46,7 +46,7 @@ func DataSourceServiceAccounts() *schema.Resource {
 						"kind": {
 							Type:        schema.TypeString,
 							Computed:    true,
-							Description: "The kind of resource in the Clients",
+							Description: "The kind of resource in the Factory",
 						},
 						"name": {
 							Description: "The name of the service account",
@@ -74,9 +74,9 @@ func dataSourceKafkasRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Clients)
+	api, ok := m.(rhoasAPI.Factory)
 	if !ok {
-		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
+		return diag.Errorf("unable to cast %v to *rhoasAPI.Factory", m)
 	}
 
 	data, resp, err := api.ServiceAccountMgmt().GetServiceAccounts(ctx).Execute()

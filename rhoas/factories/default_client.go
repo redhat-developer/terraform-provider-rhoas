@@ -1,4 +1,4 @@
-package clients
+package factories
 
 import (
 	"context"
@@ -23,29 +23,29 @@ const (
 	StatusDeleting     ServiceStatus = "deleting"
 )
 
-type DefaultClient struct {
+type DefaultFactory struct {
 	kafkaClient          *kafkamgmtclient.APIClient
 	serviceAccountClient *serviceAccounts.APIClient
 	httpClient           *http.Client
 }
 
-func NewDefaultClient(kafkaClient *kafkamgmtclient.APIClient, serviceAccountClient *serviceAccounts.APIClient, httpClient *http.Client) *DefaultClient {
-	return &DefaultClient{
+func NewDefaultFactory(kafkaClient *kafkamgmtclient.APIClient, serviceAccountClient *serviceAccounts.APIClient, httpClient *http.Client) *DefaultFactory {
+	return &DefaultFactory{
 		kafkaClient:          kafkaClient,
 		serviceAccountClient: serviceAccountClient,
 		httpClient:           httpClient,
 	}
 }
 
-func (c *DefaultClient) KafkaMgmt() kafkamgmtclient.DefaultApi {
+func (c *DefaultFactory) KafkaMgmt() kafkamgmtclient.DefaultApi {
 	return c.kafkaClient.DefaultApi
 }
 
-func (c *DefaultClient) ServiceAccountMgmt() serviceAccounts.ServiceAccountsApi {
+func (c *DefaultFactory) ServiceAccountMgmt() serviceAccounts.ServiceAccountsApi {
 	return c.serviceAccountClient.ServiceAccountsApi
 }
 
-func (c *DefaultClient) KafkaAdmin(ctx *context.Context, instanceID string) (*kafkainstanceclient.APIClient, *kafkamgmtclient.KafkaRequest, error) {
+func (c *DefaultFactory) KafkaAdmin(ctx *context.Context, instanceID string) (*kafkainstanceclient.APIClient, *kafkamgmtclient.KafkaRequest, error) {
 	kafkaAPI := c.KafkaMgmt()
 
 	kafkaInstance, resp, err := kafkaAPI.GetKafkaById(*ctx, instanceID).Execute()
@@ -91,6 +91,6 @@ func (c *DefaultClient) KafkaAdmin(ctx *context.Context, instanceID string) (*ka
 	return client, &kafkaInstance, nil
 }
 
-func (c *DefaultClient) HTTPClient() *http.Client {
+func (c *DefaultFactory) HTTPClient() *http.Client {
 	return c.httpClient
 }

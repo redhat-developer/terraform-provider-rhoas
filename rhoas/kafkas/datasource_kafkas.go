@@ -52,7 +52,7 @@ func DataSourceKafkas() *schema.Resource {
 						"href": {
 							Type:        schema.TypeString,
 							Computed:    true,
-							Description: "The path to the Kafka instance in the REST Clients",
+							Description: "The path to the Kafka instance in the REST Factory",
 						},
 						"status": {
 							Type:        schema.TypeString,
@@ -87,7 +87,7 @@ func DataSourceKafkas() *schema.Resource {
 						"kind": {
 							Type:        schema.TypeString,
 							Computed:    true,
-							Description: "The kind of resource in the Clients",
+							Description: "The kind of resource in the Factory",
 						},
 						"version": {
 							Description: "The version of Kafka the instance is using",
@@ -110,9 +110,9 @@ func dataSourceKafkasRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Clients)
+	api, ok := m.(rhoasAPI.Factory)
 	if !ok {
-		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
+		return diag.Errorf("unable to cast %v to *rhoasAPI.Factory", m)
 	}
 
 	val := d.Get("id")
