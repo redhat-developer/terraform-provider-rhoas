@@ -124,12 +124,12 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Factory)
+	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
 		return diag.Errorf("unable to cast %v to rhoasAPI.Factory)", m)
 	}
 
-	apiErr, _, err := api.KafkaMgmt().DeleteKafkaById(ctx, d.Id()).Async(true).Execute()
+	apiErr, _, err := factory.KafkaMgmt().DeleteKafkaById(ctx, d.Id()).Async(true).Execute()
 	if err != nil && err.Error() == "404 " {
 		// the resource is deleted already
 		d.SetId("")
@@ -148,7 +148,7 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 			"deprovision", "deleting",
 		},
 		Refresh: func() (interface{}, string, error) {
-			data, resp, err1 := api.KafkaMgmt().GetKafkaById(ctx, d.Id()).Execute()
+			data, resp, err1 := factory.KafkaMgmt().GetKafkaById(ctx, d.Id()).Execute()
 			if err1 != nil {
 				if err1.Error() == "404 Not Found" {
 					return data, "404", nil
@@ -183,12 +183,12 @@ func kafkaRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Factory)
+	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
 		return diag.Errorf("unable to cast %v to rhoasAPI.Factory)", m)
 	}
 
-	kafka, resp, err := api.KafkaMgmt().GetKafkaById(ctx, d.Id()).Execute()
+	kafka, resp, err := factory.KafkaMgmt().GetKafkaById(ctx, d.Id()).Execute()
 	if err != nil {
 		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
 			return diag.FromErr(apiErr)
@@ -207,7 +207,7 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Factory)
+	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
 		return diag.Errorf("unable to cast %v to rhoasAPI.Factory)", m)
 	}
@@ -217,7 +217,7 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		return diag.FromErr(err)
 	}
 
-	kr, resp, err := api.KafkaMgmt().CreateKafka(ctx).Async(true).KafkaRequestPayload(*requestPayload).Execute()
+	kr, resp, err := factory.KafkaMgmt().CreateKafka(ctx).Async(true).KafkaRequestPayload(*requestPayload).Execute()
 	if err != nil {
 		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
 			return diag.FromErr(apiErr)
@@ -238,7 +238,7 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 			"provisioning",
 		},
 		Refresh: func() (interface{}, string, error) {
-			kafka, resp, err1 := api.KafkaMgmt().GetKafkaById(ctx, kr.Id).Execute()
+			kafka, resp, err1 := factory.KafkaMgmt().GetKafkaById(ctx, kr.Id).Execute()
 			if err1 != nil {
 				if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
 					return nil, "", apiErr
@@ -272,7 +272,7 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	}
 
 	// now that kafka is created define the acl
-	err = createACLForKafka(ctx, api, d, &kafka)
+	err = createACLForKafka(ctx, factory, d, &kafka)
 	if err != nil {
 		return diag.FromErr(err)
 	}

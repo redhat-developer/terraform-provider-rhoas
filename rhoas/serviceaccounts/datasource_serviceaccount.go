@@ -46,7 +46,7 @@ func DataSourceServiceAccount() *schema.Resource {
 func dataSourceServiceAccountRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Factory)
+	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
 		return diag.Errorf("unable to cast %v to rhoasAPI.Factory)", m)
 	}
@@ -56,7 +56,7 @@ func dataSourceServiceAccountRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(errors.Errorf("Could not retrieve client id in service account data source"))
 	}
 
-	serviceAccount, resp, err := api.ServiceAccountMgmt().GetServiceAccount(ctx, id).Execute()
+	serviceAccount, resp, err := factory.ServiceAccountMgmt().GetServiceAccount(ctx, id).Execute()
 	if err != nil {
 		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
 			return diag.FromErr(apiErr)

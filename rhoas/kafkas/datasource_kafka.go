@@ -82,7 +82,7 @@ func dataSourceKafkaRead(ctx context.Context, d *schema.ResourceData, m interfac
 
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Factory)
+	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
 		return diag.Errorf("unable to cast %v to rhoasAPI.Factory)", m)
 	}
@@ -93,7 +93,7 @@ func dataSourceKafkaRead(ctx context.Context, d *schema.ResourceData, m interfac
 		return diag.Errorf("unable to cast %v to string for use as for kafka id", val)
 	}
 
-	kafka, resp, err := api.KafkaMgmt().GetKafkaById(ctx, id).Execute()
+	kafka, resp, err := factory.KafkaMgmt().GetKafkaById(ctx, id).Execute()
 	if err != nil {
 		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
 			return diag.FromErr(apiErr)

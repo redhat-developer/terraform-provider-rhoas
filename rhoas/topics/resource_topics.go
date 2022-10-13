@@ -54,7 +54,7 @@ func topicDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Factory)
+	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
 		return diag.Errorf("unable to cast %v to rhoasAPI.Factory", m)
 	}
@@ -69,7 +69,7 @@ func topicDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		return diag.FromErr(errors.Errorf("There was a problem getting the topic name value in the schema resource"))
 	}
 
-	instanceAPI, _, err := api.KafkaAdmin(&ctx, kafkaID)
+	instanceAPI, _, err := factory.KafkaAdmin(&ctx, kafkaID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -89,7 +89,7 @@ func topicRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Factory)
+	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
 		return diag.Errorf("unable to cast %v to rhoasAPI.Factory", m)
 	}
@@ -104,7 +104,7 @@ func topicRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 		return diag.FromErr(errors.Errorf("There was a problem getting the topic name value in the schema resource"))
 	}
 
-	instanceAPI, _, err := api.KafkaAdmin(&ctx, kafkaID)
+	instanceAPI, _, err := factory.KafkaAdmin(&ctx, kafkaID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -128,7 +128,7 @@ func topicCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Factory)
+	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
 		return diag.Errorf("unable to cast %v to rhoasAPI.Factory", m)
 	}
@@ -138,7 +138,7 @@ func topicCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		return diag.FromErr(errors.Errorf("There was a problem getting the kafka ID value in the schema resource"))
 	}
 
-	instanceAPI, _, err := api.KafkaAdmin(&ctx, kafkaID)
+	instanceAPI, _, err := factory.KafkaAdmin(&ctx, kafkaID)
 	if err != nil {
 		return diag.FromErr(err)
 	}

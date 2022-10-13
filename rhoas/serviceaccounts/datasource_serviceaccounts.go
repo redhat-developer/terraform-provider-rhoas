@@ -74,12 +74,12 @@ func dataSourceKafkasRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Factory)
+	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
 		return diag.Errorf("unable to cast %v to *rhoasAPI.Factory", m)
 	}
 
-	data, resp, err := api.ServiceAccountMgmt().GetServiceAccounts(ctx).Execute()
+	data, resp, err := factory.ServiceAccountMgmt().GetServiceAccounts(ctx).Execute()
 	if err != nil {
 		bodyBytes, ioErr := io.ReadAll(resp.Body)
 		if ioErr != nil {

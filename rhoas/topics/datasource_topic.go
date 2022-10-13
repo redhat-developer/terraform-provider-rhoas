@@ -36,7 +36,7 @@ func dataSourceTopicRead(ctx context.Context, d *schema.ResourceData, m interfac
 
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Factory)
+	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
 		return diag.Errorf("unable to cast %v to rhoasAPI.Factory)", m)
 	}
@@ -47,7 +47,7 @@ func dataSourceTopicRead(ctx context.Context, d *schema.ResourceData, m interfac
 		return diag.Errorf("unable to cast %v to string for use as for kafka_id", val)
 	}
 
-	instanceAPI, _, err := api.KafkaAdmin(&ctx, kafkaID)
+	instanceAPI, _, err := factory.KafkaAdmin(&ctx, kafkaID)
 	if err != nil {
 		return diag.FromErr(err)
 	}

@@ -8,6 +8,7 @@ import (
 	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
 	kafkamgmtv1errors "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/error"
 	serviceAccounts "github.com/redhat-developer/app-services-sdk-go/serviceaccountmgmt/apiv1/client"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/localize"
 	"net/http"
 )
 
@@ -27,26 +28,28 @@ type DefaultFactory struct {
 	kafkaClient          *kafkamgmtclient.APIClient
 	serviceAccountClient *serviceAccounts.APIClient
 	httpClient           *http.Client
+	localizer            localize.Localizer
 }
 
-func NewDefaultFactory(kafkaClient *kafkamgmtclient.APIClient, serviceAccountClient *serviceAccounts.APIClient, httpClient *http.Client) *DefaultFactory {
+func NewDefaultFactory(kafkaClient *kafkamgmtclient.APIClient, serviceAccountClient *serviceAccounts.APIClient, httpClient *http.Client, localizer localize.Localizer) *DefaultFactory {
 	return &DefaultFactory{
 		kafkaClient:          kafkaClient,
 		serviceAccountClient: serviceAccountClient,
 		httpClient:           httpClient,
+		localizer:            localizer,
 	}
 }
 
-func (c *DefaultFactory) KafkaMgmt() kafkamgmtclient.DefaultApi {
-	return c.kafkaClient.DefaultApi
+func (f *DefaultFactory) KafkaMgmt() kafkamgmtclient.DefaultApi {
+	return f.kafkaClient.DefaultApi
 }
 
-func (c *DefaultFactory) ServiceAccountMgmt() serviceAccounts.ServiceAccountsApi {
-	return c.serviceAccountClient.ServiceAccountsApi
+func (f *DefaultFactory) ServiceAccountMgmt() serviceAccounts.ServiceAccountsApi {
+	return f.serviceAccountClient.ServiceAccountsApi
 }
 
-func (c *DefaultFactory) KafkaAdmin(ctx *context.Context, instanceID string) (*kafkainstanceclient.APIClient, *kafkamgmtclient.KafkaRequest, error) {
-	kafkaAPI := c.KafkaMgmt()
+func (f *DefaultFactory) KafkaAdmin(ctx *context.Context, instanceID string) (*kafkainstanceclient.APIClient, *kafkamgmtclient.KafkaRequest, error) {
+	kafkaAPI := f.KafkaMgmt()
 
 	kafkaInstance, resp, err := kafkaAPI.GetKafkaById(*ctx, instanceID).Execute()
 	if resp != nil {
@@ -85,12 +88,16 @@ func (c *DefaultFactory) KafkaAdmin(ctx *context.Context, instanceID string) (*k
 
 	client := kafkainstance.NewAPIClient(&kafkainstance.Config{
 		BaseURL:    apiURL,
-		HTTPClient: c.httpClient,
+		HTTPClient: f.httpClient,
 	})
 
 	return client, &kafkaInstance, nil
 }
 
-func (c *DefaultFactory) HTTPClient() *http.Client {
-	return c.httpClient
+func (f *DefaultFactory) HTTPClient() *http.Client {
+	return f.httpClient
+}
+
+func (f *DefaultFactory) Localizer() localize.Localizer {
+	return f.localizer
 }

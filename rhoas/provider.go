@@ -3,7 +3,10 @@ package rhoas
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/acls"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/localize/goi18n"
+	"os"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -76,11 +79,11 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	//localizer, err := goi18n.New(nil)
-	//if err != nil {
-	//	tflog.Error(ctx, err.Error())
-	//	os.Exit(1)
-	//}
+	localizer, err := goi18n.New(nil)
+	if err != nil {
+		tflog.Error(ctx, err.Error())
+		os.Exit(1)
+	}
 
 	httpClient := authAPI.BuildAuthenticatedHTTPClient(d.Get("offline_token").(string))
 
@@ -94,7 +97,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 
 	// package both service account client and kafka client together to be used in the provider
 	// these are passed to each action we do and can be use to CRUD kafkas/serviceAccounts
-	client := factories.NewDefaultFactory(kafkaClient, serviceAccountClient, httpClient)
+	factory := factories.NewDefaultFactory(kafkaClient, serviceAccountClient, httpClient, localizer)
 
-	return client, diags
+	return factory, diags
 }

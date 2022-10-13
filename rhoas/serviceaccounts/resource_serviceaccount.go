@@ -2,6 +2,7 @@ package serviceaccounts
 
 import (
 	"context"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -71,7 +72,7 @@ func serviceAccountDelete(ctx context.Context, d *schema.ResourceData, m interfa
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Factory)
+	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
 		return diag.Errorf("unable to cast %v to rhoasAPI.Factory", m)
 	}
@@ -81,7 +82,7 @@ func serviceAccountDelete(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.FromErr(errors.Errorf("There was a problem getting the id value in the schema resource"))
 	}
 
-	resp, err := api.ServiceAccountMgmt().DeleteServiceAccount(ctx, id).Execute()
+	resp, err := factory.ServiceAccountMgmt().DeleteServiceAccount(ctx, id).Execute()
 	if err != nil {
 		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
 			return diag.FromErr(apiErr)
@@ -96,14 +97,14 @@ func serviceAccountRead(ctx context.Context, d *schema.ResourceData, m interface
 
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Factory)
+	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
 		return diag.Errorf("unable to cast %v to rhoasAPI.Factory)", m)
 	}
 
 	// the resource data ID field is the same as the service account id which is set when the
 	// service account is created
-	serviceAccount, resp, err := api.ServiceAccountMgmt().GetServiceAccount(ctx, d.Id()).Execute()
+	serviceAccount, resp, err := factory.ServiceAccountMgmt().GetServiceAccount(ctx, d.Id()).Execute()
 	if err != nil {
 		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
 			return diag.FromErr(apiErr)
@@ -122,17 +123,19 @@ func serviceAccountCreate(ctx context.Context, d *schema.ResourceData, m interfa
 
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Factory)
+	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
 		return diag.Errorf("unable to cast %v to rhoasAPI.Factory)", m)
 	}
+
+	tflog.Error(ctx, factory.Localizer().MustLocalize("service_account.error.no_name"))
 
 	request, err := mapResourceDataToServiceAccountCreateRequest(d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	serviceAccount, resp, err := api.ServiceAccountMgmt().CreateServiceAccount(ctx).ServiceAccountCreateRequestData(*request).Execute()
+	serviceAccount, resp, err := factory.ServiceAccountMgmt().CreateServiceAccount(ctx).ServiceAccountCreateRequestData(*request).Execute()
 	if err != nil {
 		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
 			return diag.FromErr(apiErr)
