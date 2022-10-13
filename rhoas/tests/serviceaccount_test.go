@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/pkg/errors"
+	rhoasAPI "github.com/redhat-developer/terraform-provider-rhoas/rhoas/api"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/utils"
 	"github.com/stretchr/testify/assert"
-	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 
 	saclient "github.com/redhat-developer/app-services-sdk-go/serviceaccountmgmt/apiv1/client"
 )
@@ -116,7 +116,7 @@ func TestAccRHOASServiceAccount_Error(t *testing.T) {
 // testAccCheckServiceAccountDestroy verifies the service account has been destroyed
 func testAccCheckServiceAccountDestroy(s *terraform.State) error {
 	// retrieve the connection established in Provider configuration
-	api, ok := testAccRHOAS.Meta().(rhoasAPI.Clients)
+	api, ok := testAccRHOAS.Meta().(rhoasAPI.Factory)
 	if !ok {
 		return errors.Errorf("unable to cast %v to rhoasAPI.Factory)", testAccRHOAS.Meta())
 	}
@@ -155,7 +155,7 @@ func testAccCheckServiceAccountExists(resource string, serviceAccount *saclient.
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		api, ok := testAccRHOAS.Meta().(rhoasAPI.Clients)
+		api, ok := testAccRHOAS.Meta().(rhoasAPI.Factory)
 		if !ok {
 			return errors.Errorf("unable to cast %v to rhoasAPI.Factory)", testAccRHOAS.Meta())
 		}

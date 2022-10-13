@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas"
 	"github.com/stretchr/testify/assert"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas"
 )
 
 // TestProviderIsValid tests that the provider is correctly configured to
