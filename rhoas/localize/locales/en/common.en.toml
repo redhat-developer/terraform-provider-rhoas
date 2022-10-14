@@ -1,0 +1,2 @@
+[common.errors.fieldNotFoundInSchema]
+one = 'the field "{{.Field}}" could not be found in the schema resource'

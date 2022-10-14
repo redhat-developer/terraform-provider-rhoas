@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas"
 )
 
 var (

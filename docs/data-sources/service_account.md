@@ -22,7 +22,7 @@ description: |-
 ### Read-Only
 
 - `client_id` (String) The client id associated with the service account
-- `client_secret` (String) The client secret associated with the service account. It must be stored by the client as the server will not return it after creation
+- `client_secret` (String) The client secret associated with the service account
 - `description` (String) A description of the service account
 - `name` (String) The name of the service account
 

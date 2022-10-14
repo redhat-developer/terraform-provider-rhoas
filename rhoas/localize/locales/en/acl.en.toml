@@ -1,0 +1,20 @@
+[acl.resource.field.description.principal]
+one = 'ID of the User or Service Account to bind created ACLs to'
+
+[acl.resource.field.description.kafkaID]
+one = 'The ID of the kafka instance'
+
+[acl.resource.field.description.resourceType]
+one = 'Resource type of ACL, full list of possible values can be found here: https://github.com/redhat-developer/app-services-sdk-python/blob/main/sdks/kafka_instance_sdk/docs/AclResourceType.md'
+
+[acl.resource.field.description.resourceName]
+one = 'Resource name of topic for the ACL'
+
+[acl.resource.field.description.patternType]
+one = 'Pattern type of ACL, full list of possible values can be found here: https://github.com/redhat-developer/app-services-sdk-python/blob/main/sdks/kafka_instance_sdk/docs/AclPatternType.md'
+
+[acl.resource.field.description.operationType]
+one = 'Operation type of ACL, full list of possible values can be found here: https://github.com/redhat-developer/app-services-sdk-python/blob/main/sdks/kafka_instance_sdk/docs/AclOperation.md'
+
+[acl.resource.field.description.permissionType]
+one = 'Permission type of ACL, full list of possible values can be found here: https://github.com/redhat-developer/app-services-sdk-python/blob/main/sdks/kafka_instance_sdk/docs/AclPermissionType.md'

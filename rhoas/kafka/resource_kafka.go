@@ -1,9 +1,10 @@
-package kafkas
+package kafka
 
 import (
 	"context"
 	kafkainstanceclient "github.com/redhat-developer/app-services-sdk-go/kafkainstance/apiv1/client"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/acls"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/acl"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/localize"
 	"strings"
 	"time"
 
@@ -12,8 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/pkg/errors"
 	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
-	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
+	rhoasAPI "github.com/redhat-developer/terraform-provider-rhoas/rhoas/api"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/utils"
 )
 
 const (
@@ -32,7 +33,7 @@ const (
 	ACLField                 = "acl"
 )
 
-func ResourceKafka() *schema.Resource {
+func ResourceKafka(localizer localize.Localizer) *schema.Resource {
 	return &schema.Resource{
 		Description:   "`rhoas_kafka` manages a Kafka instance in Red Hat OpenShift Streams for Apache Kafka.",
 		CreateContext: kafkaCreate,
@@ -43,74 +44,75 @@ func ResourceKafka() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			CloudProviderField: {
-				Description: "The cloud provider to use. A list of available cloud providers can be obtained using `data.rhoas_cloud_providers`.",
+				Description: localizer.MustLocalize("kafka.resource.field.description.cloudProvider"),
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "aws",
 				ForceNew:    true,
 			},
 			RegionField: {
-				Description: "The region to use. A list of available regions can be obtained using `data.rhoas_cloud_providers_regions`.",
+				Description: localizer.MustLocalize("kafka.resource.field.description.region"),
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "us-east-1",
 				ForceNew:    true,
 			},
 			NameField: {
-				Description: "The name of the Kafka instance",
+				Description: localizer.MustLocalize("kafka.resource.field.description.name"),
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 			},
 			HrefField: {
+				Description: localizer.MustLocalize("kafka.resource.field.description.href"),
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The path to the Kafka instance in the REST API",
 			},
 			StatusField: {
+				Description: localizer.MustLocalize("kafka.resource.field.description.status"),
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The status of the Kafka instance",
 			},
 			OwnerField: {
+				Description: localizer.MustLocalize("kafka.resource.field.description.owner"),
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The username of the Red Hat account that owns the Kafka instance",
 			},
 			BootstrapServerHostField: {
-				Description: "The bootstrap server (host:port)",
+				Description: localizer.MustLocalize("kafka.resource.field.description.bootstrapServerHost"),
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
 			CreatedAtField: {
-				Description: "The RFC3339 date and time at which the Kafka instance was created",
+				Description: localizer.MustLocalize("kafka.resource.field.description.createdAt"),
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
 			UpdatedAtField: {
-				Description: "The RFC3339 date and time at which the Kafka instance was last updated",
+				Description: localizer.MustLocalize("kafka.resource.field.description.updatedAt"),
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
 			IDField: {
-				Description: "The unique identifier for the Kafka instance",
+				Description: localizer.MustLocalize("kafka.resource.field.description.id"),
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
 			KindField: {
+				Description: localizer.MustLocalize("kafka.resource.field.description.kind"),
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The kind of resource in the API",
 			},
 			VersionField: {
-				Description: "The version of Kafka the instance is using",
+				Description: localizer.MustLocalize("kafka.resource.field.description.version"),
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
 			ACLField: {
-				Type:     schema.TypeList,
-				ForceNew: true,
-				Optional: true,
+				Description: localizer.MustLocalize("kafka.resource.field.description.acl"),
+				Type:        schema.TypeList,
+				ForceNew:    true,
+				Optional:    true,
 				Elem: &schema.Schema{
 					Type: schema.TypeMap,
 					Elem: schema.TypeString,
@@ -124,12 +126,12 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Clients)
+	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
-		return diag.Errorf("unable to cast %v to rhoasAPI.Clients)", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Factory", m)
 	}
 
-	apiErr, _, err := api.KafkaMgmt().DeleteKafkaById(ctx, d.Id()).Async(true).Execute()
+	apiErr, _, err := factory.KafkaMgmt().DeleteKafkaById(ctx, d.Id()).Async(true).Execute()
 	if err != nil && err.Error() == "404 " {
 		// the resource is deleted already
 		d.SetId("")
@@ -148,7 +150,7 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 			"deprovision", "deleting",
 		},
 		Refresh: func() (interface{}, string, error) {
-			data, resp, err1 := api.KafkaMgmt().GetKafkaById(ctx, d.Id()).Execute()
+			data, resp, err1 := factory.KafkaMgmt().GetKafkaById(ctx, d.Id()).Execute()
 			if err1 != nil {
 				if err1.Error() == "404 Not Found" {
 					return data, "404", nil
@@ -183,12 +185,12 @@ func kafkaRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Clients)
+	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
-		return diag.Errorf("unable to cast %v to rhoasAPI.Clients)", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Factory", m)
 	}
 
-	kafka, resp, err := api.KafkaMgmt().GetKafkaById(ctx, d.Id()).Execute()
+	kafka, resp, err := factory.KafkaMgmt().GetKafkaById(ctx, d.Id()).Execute()
 	if err != nil {
 		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
 			return diag.FromErr(apiErr)
@@ -207,25 +209,21 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Clients)
+	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
-		return diag.Errorf("unable to cast %v to rhoasAPI.Clients)", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Factory", m)
 	}
 
-	requestPayload, err := mapResourceDataToKafkaPayload(d)
+	requestPayload, err := mapResourceDataToKafkaPayload(factory, d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	kr, resp, err := api.KafkaMgmt().CreateKafka(ctx).Async(true).KafkaRequestPayload(*requestPayload).Execute()
+	kr, resp, err := factory.KafkaMgmt().CreateKafka(ctx).Async(true).KafkaRequestPayload(*requestPayload).Execute()
 	if err != nil {
 		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
 			return diag.FromErr(apiErr)
 		}
-	}
-
-	if kr.Id == "" {
-		return diag.Errorf("no id provided")
 	}
 
 	d.SetId(kr.Id)
@@ -238,7 +236,7 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 			"provisioning",
 		},
 		Refresh: func() (interface{}, string, error) {
-			kafka, resp, err1 := api.KafkaMgmt().GetKafkaById(ctx, kr.Id).Execute()
+			kafka, resp, err1 := factory.KafkaMgmt().GetKafkaById(ctx, kr.Id).Execute()
 			if err1 != nil {
 				if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
 					return nil, "", apiErr
@@ -258,7 +256,7 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 
 	data, err := createStateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return diag.FromErr(errors.Wrapf(err, "Error waiting for instance (%s) to be created", d.Id()))
+		return diag.FromErr(err)
 	}
 
 	kafka, castOk := data.(kafkamgmtclient.KafkaRequest)
@@ -272,7 +270,7 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	}
 
 	// now that kafka is created define the acl
-	err = createACLForKafka(ctx, api, d, &kafka)
+	err = createACLForKafka(ctx, factory, d, &kafka)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -280,7 +278,7 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	return diags
 }
 
-func createACLForKafka(ctx context.Context, api rhoasAPI.Clients, d *schema.ResourceData, kafka *kafkamgmtclient.KafkaRequest) error {
+func createACLForKafka(ctx context.Context, factory rhoasAPI.Factory, d *schema.ResourceData, kafka *kafkamgmtclient.KafkaRequest) error {
 
 	aclInput := d.Get(ACLField)
 	if aclInput == nil {
@@ -288,49 +286,50 @@ func createACLForKafka(ctx context.Context, api rhoasAPI.Clients, d *schema.Reso
 		return nil
 	}
 
-	acl, ok := aclInput.([]interface{})
+	aclConfig, ok := aclInput.([]interface{})
 	if !ok {
-		return errors.Errorf("No acl defined in the kafka resource")
+		return factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", ACLField))
+
 	}
 
-	for i := 0; i < len(acl); i++ {
-		element, ok := acl[i].(map[string]interface{})
+	for i := 0; i < len(aclConfig); i++ {
+		element, ok := aclConfig[i].(map[string]interface{})
 		if !ok {
-			return errors.Errorf("Cannot cast contents of acl to a map[string]interface{}")
+			return factory.Localizer().MustLocalizeError("kafka.errors.unableToRetrieveAclContents")
 		}
 
-		principal, ok := element[acls.PrincipalField].(string)
+		principal, ok := element[acl.PrincipalField].(string)
 		if !ok {
-			return errors.Errorf("There was a problem getting the principal value in the kafka acl")
+			return factory.Localizer().MustLocalizeError("kafka.errors.noAclFieldGiven", localize.NewEntry("Field", acl.PrincipalField))
 		}
 
 		// required for api, the user id, service account id or * works
 		// when appended to User:
-		principal = acls.PrincipalPrefix + principal
+		principal = acl.PrincipalPrefix + principal
 
-		resourceType, ok := element[acls.ResourceTypeField].(string)
+		resourceType, ok := element[acl.ResourceTypeField].(string)
 		if !ok {
-			return errors.Errorf("There was a problem getting the resource type value in the kafka acl")
+			return factory.Localizer().MustLocalizeError("kafka.errors.noAclFieldGiven", localize.NewEntry("Field", acl.ResourceTypeField))
 		}
 
-		resourceName, ok := element[acls.ResourceNameField].(string)
+		resourceName, ok := element[acl.ResourceNameField].(string)
 		if !ok {
-			return errors.Errorf("There was a problem getting the resource name value in the kafka acl")
+			return factory.Localizer().MustLocalizeError("kafka.errors.noAclFieldGiven", localize.NewEntry("Field", acl.ResourceNameField))
 		}
 
-		patternType, ok := element[acls.PatternTypeField].(string)
+		patternType, ok := element[acl.PatternTypeField].(string)
 		if !ok {
-			return errors.Errorf("There was a problem getting the pattern type value in the kafka acl")
+			return factory.Localizer().MustLocalizeError("kafka.errors.noAclFieldGiven", localize.NewEntry("Field", acl.PatternTypeField))
 		}
 
-		operationType, ok := element[acls.OperationTypeField].(string)
+		operationType, ok := element[acl.OperationTypeField].(string)
 		if !ok {
-			return errors.Errorf("There was a problem getting the operation type value in the kafka acl")
+			return factory.Localizer().MustLocalizeError("kafka.errors.noAclFieldGiven", localize.NewEntry("Field", acl.OperationTypeField))
 		}
 
-		permissionType, ok := element[acls.PermissionTypeField].(string)
+		permissionType, ok := element[acl.PermissionTypeField].(string)
 		if !ok {
-			return errors.Errorf("There was a problem getting the permission type value in the kafka acl")
+			return factory.Localizer().MustLocalizeError("kafka.errors.noAclFieldGiven", localize.NewEntry("Field", acl.PermissionTypeField))
 		}
 
 		binding := kafkainstanceclient.NewAclBinding(
@@ -342,7 +341,7 @@ func createACLForKafka(ctx context.Context, api rhoasAPI.Clients, d *schema.Reso
 			kafkainstanceclient.AclPermissionType(strings.ToUpper(permissionType)),
 		)
 
-		instanceAPI, _, err := api.KafkaAdmin(&ctx, kafka.GetId())
+		instanceAPI, _, err := factory.KafkaAdmin(&ctx, kafka.GetId())
 		if err != nil {
 			return err
 		}
@@ -410,24 +409,24 @@ func setResourceDataFromKafkaData(d *schema.ResourceData, kafka *kafkamgmtclient
 	return nil
 }
 
-func mapResourceDataToKafkaPayload(d *schema.ResourceData) (*kafkamgmtclient.KafkaRequestPayload, error) {
+func mapResourceDataToKafkaPayload(factory rhoasAPI.Factory, d *schema.ResourceData) (*kafkamgmtclient.KafkaRequestPayload, error) {
 
 	// we only set these values from the resource data as all the rest are set as
 	// computed in the schema and for us the computed values are assigned when we
 	// get the kafka request object back from the API
 	cloudProvider, ok := d.Get(CloudProviderField).(string)
 	if !ok {
-		return nil, errors.Errorf("There was a problem getting the cloud provider value in the schema resource")
+		return nil, factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", CloudProviderField))
 	}
 
 	region, ok := d.Get(RegionField).(string)
 	if !ok {
-		return nil, errors.Errorf("There was a problem getting the region value in the schema resource")
+		return nil, factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", RegionField))
 	}
 
 	name, ok := d.Get(NameField).(string)
 	if !ok {
-		return nil, errors.Errorf("There was a problem getting the name value in the schema resource")
+		return nil, factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", NameField))
 	}
 
 	payload := kafkamgmtclient.NewKafkaRequestPayload(name)

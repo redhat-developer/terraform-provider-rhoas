@@ -1,0 +1,8 @@
+[topic.resource.field.description.name]
+one = 'The name of the topic'
+
+[topic.resource.field.description.partitions]
+one = 'The number of partitions in the topic'
+
+[topic.resource.field.description.kafkaID]
+one = 'The unique ID of the kafka instance this topic is associated with'

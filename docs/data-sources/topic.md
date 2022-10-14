@@ -17,8 +17,8 @@ description: |-
 
 ### Required
 
-- `kafka_id` (String) The unique identifier for the Kafka instance
-- `name` (String) The name of the Kafka topic
+- `kafka_id` (String) The unique ID of the kafka instance this topic is associated with
+- `name` (String) The name of the topic
 
 ### Read-Only
 

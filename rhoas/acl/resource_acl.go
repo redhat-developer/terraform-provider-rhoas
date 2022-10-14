@@ -1,16 +1,16 @@
-package acls
+package acl
 
 import (
 	"context"
 	kafkainstanceclient "github.com/redhat-developer/app-services-sdk-go/kafkainstance/apiv1/client"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/localize"
 	"math/rand"
 	"strconv"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/pkg/errors"
-	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
+	rhoasAPI "github.com/redhat-developer/terraform-provider-rhoas/rhoas/api"
 )
 
 const (
@@ -25,7 +25,7 @@ const (
 	PermissionTypeField = "permission_type"
 )
 
-func ResourceACL() *schema.Resource {
+func ResourceACL(localizer localize.Localizer) *schema.Resource {
 	return &schema.Resource{
 		Description:   "`rhoas_acl` manages an ACL binding for a Kafka instance in Red Hat OpenShift Streams for Apache Kafka.",
 		CreateContext: aclCreate,
@@ -36,43 +36,43 @@ func ResourceACL() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			PrincipalField: {
-				Description: "ID of the User or Service Account to bind created ACLs to.",
+				Description: localizer.MustLocalize("acl.resource.field.description.principal"),
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 			},
 			KafkaIDField: {
-				Description: "The ID of the kafka instance",
+				Description: localizer.MustLocalize("acl.resource.field.description.kafkaID"),
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 			},
 			ResourceTypeField: {
-				Description: "Resource type of ACL, full list of possible values can be found here: https://github.com/redhat-developer/app-services-sdk-python/blob/main/sdks/kafka_instance_sdk/docs/AclResourceType.md",
+				Description: localizer.MustLocalize("acl.resource.field.description.resourceType"),
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 			},
 			ResourceNameField: {
-				Description: "Resource name of topic for the ACL",
+				Description: localizer.MustLocalize("acl.resource.field.description.resourceName"),
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 			},
 			PatternTypeField: {
+				Description: localizer.MustLocalize("acl.resource.field.description.patternType"),
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Pattern type of ACL, full list of possible values can be found here: https://github.com/redhat-developer/app-services-sdk-python/blob/main/sdks/kafka_instance_sdk/docs/AclPatternType.md",
 				ForceNew:    true,
 			},
 			OperationTypeField: {
-				Description: "Operation type of ACL, full list of possible values can be found here: https://github.com/redhat-developer/app-services-sdk-python/blob/main/sdks/kafka_instance_sdk/docs/AclOperation.md",
+				Description: localizer.MustLocalize("acl.resource.field.description.operationType"),
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 			},
 			PermissionTypeField: {
-				Description: "Permission type of ACL, full list of possible values can be found here: https://github.com/redhat-developer/app-services-sdk-python/blob/main/sdks/kafka_instance_sdk/docs/AclPermissionType.md",
+				Description: localizer.MustLocalize("acl.resource.field.description.permissionType"),
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
@@ -97,22 +97,22 @@ func aclCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Clients)
+	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
-		return diag.Errorf("unable to cast %v to rhoasAPI.Clients", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Factory", m)
 	}
 
 	kafkaID, ok := d.Get(KafkaIDField).(string)
 	if !ok {
-		return diag.FromErr(errors.Errorf("There was a problem getting the kafka ID value in the schema resource"))
+		return diag.FromErr(factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", KafkaIDField)))
 	}
 
-	instanceAPI, _, err := api.KafkaAdmin(&ctx, kafkaID)
+	instanceAPI, _, err := factory.KafkaAdmin(&ctx, kafkaID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	binding, err := mapResourceDataToACLBinding(d)
+	binding, err := mapResourceDataToACLBinding(factory, d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -129,41 +129,41 @@ func aclCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 	return diags
 }
 
-func mapResourceDataToACLBinding(d *schema.ResourceData) (*kafkainstanceclient.AclBinding, error) {
+func mapResourceDataToACLBinding(factory rhoasAPI.Factory, d *schema.ResourceData) (*kafkainstanceclient.AclBinding, error) {
 
 	// we only set these values from the resource data as all the rest are set as
 	// computed in the schema and for us the computed values are assigned when we
 	// get the kafka request object back from the API
 	principal, ok := d.Get(PrincipalField).(string)
 	if !ok {
-		return nil, errors.Errorf("There was a problem getting the principal value in the schema resource")
+		return nil, factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", PrincipalField))
 	}
 
 	principal = PrincipalPrefix + principal
 
 	resourceType, ok := d.Get(ResourceTypeField).(string)
 	if !ok {
-		return nil, errors.Errorf("There was a problem getting the resource type value in the schema resource")
+		return nil, factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", ResourceTypeField))
 	}
 
 	resourceName, ok := d.Get(ResourceNameField).(string)
 	if !ok {
-		return nil, errors.Errorf("There was a problem getting the resource name value in the schema resource")
+		return nil, factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", ResourceNameField))
 	}
 
 	patternType, ok := d.Get(PatternTypeField).(string)
 	if !ok {
-		return nil, errors.Errorf("There was a problem getting the pattern type value in the schema resource")
+		return nil, factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", PatternTypeField))
 	}
 
 	operationType, ok := d.Get(OperationTypeField).(string)
 	if !ok {
-		return nil, errors.Errorf("There was a problem getting the operation type value in the schema resource")
+		return nil, factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", OperationTypeField))
 	}
 
 	permissionType, ok := d.Get(PermissionTypeField).(string)
 	if !ok {
-		return nil, errors.Errorf("There was a problem getting the permission type value in the schema resource")
+		return nil, factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", PermissionTypeField))
 	}
 
 	binding := kafkainstanceclient.NewAclBinding(
