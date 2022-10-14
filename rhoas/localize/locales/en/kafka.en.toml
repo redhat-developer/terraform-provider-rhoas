@@ -3,3 +3,45 @@ one = 'there was a problem getting the acl defined in the kafka instance'
 
 [kafka.errors.noAclFieldGiven]
 one = 'the field "{{.Field}}" was not provided in the ACL configuration of the kafka instance'
+
+[kafka.resource.field.description.cloudProvider]
+one = 'The cloud provider to use. A list of available cloud providers can be obtained using `data.rhoas_cloud_providers`'
+
+[kafka.resource.field.description.region]
+one = 'The region to use. A list of available regions can be obtained using `data.rhoas_cloud_providers_regions`'
+
+[kafka.resource.field.description.name]
+one = 'The name of the Kafka instance'
+
+[kafka.resource.field.description.href]
+one = 'The path to the Kafka instance in the REST API'
+
+[kafka.resource.field.description.status]
+one = 'The status of the Kafka instance'
+
+[kafka.resource.field.description.owner]
+one = 'The username of the Red Hat account that owns the Kafka instance'
+
+[kafka.resource.field.description.bootstrapServerHost]
+one = 'The bootstrap server (host:port)'
+
+[kafka.resource.field.description.createdAt]
+one = 'The RFC3339 date and time at which the Kafka instance was created'
+
+[kafka.resource.field.description.updatedAt]
+one = 'The RFC3339 date and time at which the Kafka instance was last updated'
+
+[kafka.resource.field.description.id]
+one = 'The unique identifier for the Kafka instance'
+
+[kafka.resource.field.description.kind]
+one = 'The kind of resource in the API'
+
+[kafka.resource.field.description.version]
+one = 'The version of Kafka the instance is using'
+
+[kafka.resource.field.description.acl]
+one = 'The ACL binding configuration for the kafka instance'
+
+[kafka.datasource.field.description.id]
+one = 'The kafka ID used to read the kafka instance'

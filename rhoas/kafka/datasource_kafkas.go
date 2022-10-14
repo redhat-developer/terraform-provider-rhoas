@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/localize"
 	"strconv"
 	"time"
 
@@ -12,7 +13,7 @@ import (
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/utils"
 )
 
-func DataSourceKafkas() *schema.Resource {
+func DataSourceKafkas(localizer localize.Localizer) *schema.Resource {
 	return &schema.Resource{
 		Description: "`rhoas_kafkas` provides a list of the Kafkas accessible to your organization in Red Hat OpenShift Streams for Apache Kafka.",
 		ReadContext: dataSourceKafkasRead,
@@ -29,73 +30,63 @@ func DataSourceKafkas() *schema.Resource {
 				Computed:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"cloud_provider": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The cloud provider to use. A list of available cloud providers can be obtained using `data.rhoas_cloud_providers`.",
-						},
-						"multi_az": {
-							Type:        schema.TypeBool,
-							Computed:    true,
-							Description: "Whether the Kafka instance should be highly available by supporting multi-az",
-						},
-						"region": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The region to use. A list of available regions can be obtained using `data.rhoas_cloud_providers_regions`.",
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The name of the Kafka instance",
-						},
-						"href": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The path to the Kafka instance in the REST Factory",
-						},
-						"status": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The status of the Kafka instance",
-						},
-						"owner": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The username of the Red Hat account that owns the Kafka instance",
-						},
-						"bootstrap_server_host": {
-							Description: "The bootstrap server (host:port)",
+						CloudProviderField: {
+							Description: localizer.MustLocalize("kafka.resource.field.description.cloudProvider"),
 							Type:        schema.TypeString,
 							Computed:    true,
 						},
-						"created_at": {
-							Description: "The RFC3339 date and time at which the Kafka instance was created",
+						RegionField: {
+							Description: localizer.MustLocalize("kafka.resource.field.description.region"),
 							Type:        schema.TypeString,
 							Computed:    true,
 						},
-						"updated_at": {
-							Description: "The RFC3339 date and time at which the Kafka instance was last updated",
+						NameField: {
+							Description: localizer.MustLocalize("kafka.resource.field.description.name"),
 							Type:        schema.TypeString,
 							Computed:    true,
 						},
-						"id": {
-							Description: "The unique identifier for the Kafka instance",
+						HrefField: {
+							Description: localizer.MustLocalize("kafka.resource.field.description.href"),
 							Type:        schema.TypeString,
 							Computed:    true,
 						},
-						"kind": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The kind of resource in the Factory",
-						},
-						"version": {
-							Description: "The version of Kafka the instance is using",
+						StatusField: {
+							Description: localizer.MustLocalize("kafka.resource.field.description.status"),
 							Type:        schema.TypeString,
 							Computed:    true,
 						},
-						"failed_reason": {
-							Description: "The reason the instance failed",
+						OwnerField: {
+							Description: localizer.MustLocalize("kafka.resource.field.description.owner"),
+							Type:        schema.TypeString,
+							Computed:    true,
+						},
+						BootstrapServerHostField: {
+							Description: localizer.MustLocalize("kafka.resource.field.description.bootstrapServerHost"),
+							Type:        schema.TypeString,
+							Computed:    true,
+						},
+						CreatedAtField: {
+							Description: localizer.MustLocalize("kafka.resource.field.description.createdAt"),
+							Type:        schema.TypeString,
+							Computed:    true,
+						},
+						UpdatedAtField: {
+							Description: localizer.MustLocalize("kafka.resource.field.description.updatedAt"),
+							Type:        schema.TypeString,
+							Computed:    true,
+						},
+						IDField: {
+							Description: localizer.MustLocalize("kafka.datasource.field.description.id"),
+							Type:        schema.TypeString,
+							Required:    true,
+						},
+						KindField: {
+							Description: localizer.MustLocalize("kafka.resource.field.description.kind"),
+							Type:        schema.TypeString,
+							Computed:    true,
+						},
+						VersionField: {
+							Description: localizer.MustLocalize("kafka.resource.field.description.version"),
 							Type:        schema.TypeString,
 							Computed:    true,
 						},

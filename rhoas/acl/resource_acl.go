@@ -25,7 +25,7 @@ const (
 	PermissionTypeField = "permission_type"
 )
 
-func ResourceACL() *schema.Resource {
+func ResourceACL(localizer localize.Localizer) *schema.Resource {
 	return &schema.Resource{
 		Description:   "`rhoas_acl` manages an ACL binding for a Kafka instance in Red Hat OpenShift Streams for Apache Kafka.",
 		CreateContext: aclCreate,
@@ -36,43 +36,43 @@ func ResourceACL() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			PrincipalField: {
-				Description: "ID of the User or Service Account to bind created ACLs to.",
+				Description: localizer.MustLocalize("acl.resource.field.description.principal"),
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 			},
 			KafkaIDField: {
-				Description: "The ID of the kafka instance",
+				Description: localizer.MustLocalize("acl.resource.field.description.kafkaID"),
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 			},
 			ResourceTypeField: {
-				Description: "Resource type of ACL, full list of possible values can be found here: https://github.com/redhat-developer/app-services-sdk-python/blob/main/sdks/kafka_instance_sdk/docs/AclResourceType.md",
+				Description: localizer.MustLocalize("acl.resource.field.description.resourceType"),
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 			},
 			ResourceNameField: {
-				Description: "Resource name of topic for the ACL",
+				Description: localizer.MustLocalize("acl.resource.field.description.resourceName"),
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 			},
 			PatternTypeField: {
+				Description: localizer.MustLocalize("acl.resource.field.description.patternType"),
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Pattern type of ACL, full list of possible values can be found here: https://github.com/redhat-developer/app-services-sdk-python/blob/main/sdks/kafka_instance_sdk/docs/AclPatternType.md",
 				ForceNew:    true,
 			},
 			OperationTypeField: {
-				Description: "Operation type of ACL, full list of possible values can be found here: https://github.com/redhat-developer/app-services-sdk-python/blob/main/sdks/kafka_instance_sdk/docs/AclOperation.md",
+				Description: localizer.MustLocalize("acl.resource.field.description.operationType"),
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 			},
 			PermissionTypeField: {
-				Description: "Permission type of ACL, full list of possible values can be found here: https://github.com/redhat-developer/app-services-sdk-python/blob/main/sdks/kafka_instance_sdk/docs/AclPermissionType.md",
+				Description: localizer.MustLocalize("acl.resource.field.description.permissionType"),
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,

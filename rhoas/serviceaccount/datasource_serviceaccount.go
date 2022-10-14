@@ -9,33 +9,33 @@ import (
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/utils"
 )
 
-func DataSourceServiceAccount() *schema.Resource {
+func DataSourceServiceAccount(localizer localize.Localizer) *schema.Resource {
 	return &schema.Resource{
 		Description: "`rhoas_service_account` provides a service account accessible to your organization in Red Hat OpenShift Streams for Apache Kafka.",
 		ReadContext: dataSourceServiceAccountRead,
 		Schema: map[string]*schema.Schema{
 			IDField: {
-				Description: "The unique id fir the service account",
+				Description: localizer.MustLocalize("serviceaccount.resource.field.description.id"),
 				Type:        schema.TypeString,
 				Required:    true,
 			},
 			DescriptionField: {
-				Description: "A description of the service account",
+				Description: localizer.MustLocalize("serviceaccount.resource.field.description.description"),
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
 			NameField: {
-				Description: "The name of the service account",
+				Description: localizer.MustLocalize("serviceaccount.resource.field.description.name"),
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
 			ClientIDField: {
-				Description: "The client id associated with the service account",
+				Description: localizer.MustLocalize("serviceaccount.resource.field.description.clientID"),
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
 			ClientSecret: {
-				Description: "The client secret associated with the service account. It must be stored by the client as the server will not return it after creation",
+				Description: localizer.MustLocalize("serviceaccount.resource.field.description.clientSecret"),
 				Type:        schema.TypeString,
 				Computed:    true,
 			},

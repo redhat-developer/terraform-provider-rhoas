@@ -17,18 +17,18 @@ description: |-
 
 ### Required
 
-- `id` (String) The unique identifier for the Kafka instance
+- `id` (String) The kafka ID used to read the kafka instance
 
 ### Read-Only
 
 - `bootstrap_server_host` (String) The bootstrap server (host:port)
-- `cloud_provider` (String) The cloud provider to use. A list of available cloud providers can be obtained using `data.rhoas_cloud_providers`.
+- `cloud_provider` (String) The cloud provider to use. A list of available cloud providers can be obtained using `data.rhoas_cloud_providers`
 - `created_at` (String) The RFC3339 date and time at which the Kafka instance was created
 - `href` (String) The path to the Kafka instance in the REST API
 - `kind` (String) The kind of resource in the API
 - `name` (String) The name of the Kafka instance
 - `owner` (String) The username of the Red Hat account that owns the Kafka instance
-- `region` (String) The region to use. A list of available regions can be obtained using `data.rhoas_cloud_providers_regions`.
+- `region` (String) The region to use. A list of available regions can be obtained using `data.rhoas_cloud_providers_regions`
 - `status` (String) The status of the Kafka instance
 - `updated_at` (String) The RFC3339 date and time at which the Kafka instance was last updated
 - `version` (String) The version of Kafka the instance is using

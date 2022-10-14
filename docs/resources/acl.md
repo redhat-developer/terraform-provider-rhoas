@@ -21,7 +21,7 @@ description: |-
 - `operation_type` (String) Operation type of ACL, full list of possible values can be found here: https://github.com/redhat-developer/app-services-sdk-python/blob/main/sdks/kafka_instance_sdk/docs/AclOperation.md
 - `pattern_type` (String) Pattern type of ACL, full list of possible values can be found here: https://github.com/redhat-developer/app-services-sdk-python/blob/main/sdks/kafka_instance_sdk/docs/AclPatternType.md
 - `permission_type` (String) Permission type of ACL, full list of possible values can be found here: https://github.com/redhat-developer/app-services-sdk-python/blob/main/sdks/kafka_instance_sdk/docs/AclPermissionType.md
-- `principal` (String) ID of the User or Service Account to bind created ACLs to.
+- `principal` (String) ID of the User or Service Account to bind created ACLs to
 - `resource_name` (String) Resource name of topic for the ACL
 - `resource_type` (String) Resource type of ACL, full list of possible values can be found here: https://github.com/redhat-developer/app-services-sdk-python/blob/main/sdks/kafka_instance_sdk/docs/AclResourceType.md
 

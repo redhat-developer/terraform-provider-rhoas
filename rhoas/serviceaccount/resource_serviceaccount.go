@@ -20,7 +20,7 @@ const (
 	IDField          = "id"
 )
 
-func ResourceServiceAccount() *schema.Resource {
+func ResourceServiceAccount(localizer localize.Localizer) *schema.Resource {
 	return &schema.Resource{
 		Description:   "`rhoas_service_account` manages a service account in Red Hat OpenShift Streams for Apache Kafka.",
 		CreateContext: serviceAccountCreate,
@@ -31,33 +31,33 @@ func ResourceServiceAccount() *schema.Resource {
 		},
 		Schema: map[string]*schema.Schema{
 			IDField: {
-				Description: "The unique id fir the service account",
+				Description: localizer.MustLocalize("serviceaccount.resource.field.description.id"),
 				Type:        schema.TypeString,
 				Computed:    true,
 				ForceNew:    true,
 			},
 			DescriptionField: {
-				Description: "A description of the service account",
+				Description: localizer.MustLocalize("serviceaccount.resource.field.description.description"),
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "",
 				ForceNew:    true,
 			},
 			NameField: {
-				Description: "The name of the service account",
+				Description: localizer.MustLocalize("serviceaccount.resource.field.description.name"),
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 			},
 			ClientIDField: {
-				Description: "The client id associated with the service account",
+				Description: localizer.MustLocalize("serviceaccount.resource.field.description.clientID"),
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
 			ClientSecret: {
+				Description: localizer.MustLocalize("serviceaccount.resource.field.description.clientSecret"),
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The client secret associated with the service account. It must be stored by the client as the server will not return it after creation",
 			},
 		},
 	}

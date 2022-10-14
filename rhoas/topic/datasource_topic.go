@@ -9,23 +9,23 @@ import (
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/utils"
 )
 
-func DataSourceTopic() *schema.Resource {
+func DataSourceTopic(localizer localize.Localizer) *schema.Resource {
 	return &schema.Resource{
 		Description: "`rhoas_topic` provides a Topic accessible to your organization in Red Hat OpenShift Streams for Apache Kafka.",
 		ReadContext: dataSourceTopicRead,
 		Schema: map[string]*schema.Schema{
 			NameField: {
+				Description: localizer.MustLocalize("topic.resource.field.description.name"),
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The name of the Kafka topic",
 			},
 			PartitionsField: {
-				Description: "The number of partitions in the topic",
+				Description: localizer.MustLocalize("topic.resource.field.description.partitions"),
 				Type:        schema.TypeInt,
 				Computed:    true,
 			},
 			KafkaIDField: {
-				Description: "The unique identifier for the Kafka instance",
+				Description: localizer.MustLocalize("topic.resource.field.description.kafkaID"),
 				Type:        schema.TypeString,
 				Required:    true,
 			},
