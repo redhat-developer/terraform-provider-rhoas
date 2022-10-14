@@ -1,9 +1,9 @@
-package kafkas
+package kafka
 
 import (
 	"context"
 	kafkainstanceclient "github.com/redhat-developer/app-services-sdk-go/kafkainstance/apiv1/client"
-	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/acls"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/acl"
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/localize"
 	"strings"
 	"time"
@@ -285,50 +285,50 @@ func createACLForKafka(ctx context.Context, factory rhoasAPI.Factory, d *schema.
 		return nil
 	}
 
-	acl, ok := aclInput.([]interface{})
+	aclConfig, ok := aclInput.([]interface{})
 	if !ok {
 		return factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", ACLField))
 
 	}
 
-	for i := 0; i < len(acl); i++ {
-		element, ok := acl[i].(map[string]interface{})
+	for i := 0; i < len(aclConfig); i++ {
+		element, ok := aclConfig[i].(map[string]interface{})
 		if !ok {
 			return factory.Localizer().MustLocalizeError("kafka.errors.unableToRetrieveAclContents")
 		}
 
-		principal, ok := element[acls.PrincipalField].(string)
+		principal, ok := element[acl.PrincipalField].(string)
 		if !ok {
-			return factory.Localizer().MustLocalizeError("kafka.errors.noAclFieldGiven", localize.NewEntry("Field", acls.PrincipalField))
+			return factory.Localizer().MustLocalizeError("kafka.errors.noAclFieldGiven", localize.NewEntry("Field", acl.PrincipalField))
 		}
 
 		// required for api, the user id, service account id or * works
 		// when appended to User:
-		principal = acls.PrincipalPrefix + principal
+		principal = acl.PrincipalPrefix + principal
 
-		resourceType, ok := element[acls.ResourceTypeField].(string)
+		resourceType, ok := element[acl.ResourceTypeField].(string)
 		if !ok {
-			return factory.Localizer().MustLocalizeError("kafka.errors.noAclFieldGiven", localize.NewEntry("Field", acls.ResourceTypeField))
+			return factory.Localizer().MustLocalizeError("kafka.errors.noAclFieldGiven", localize.NewEntry("Field", acl.ResourceTypeField))
 		}
 
-		resourceName, ok := element[acls.ResourceNameField].(string)
+		resourceName, ok := element[acl.ResourceNameField].(string)
 		if !ok {
-			return factory.Localizer().MustLocalizeError("kafka.errors.noAclFieldGiven", localize.NewEntry("Field", acls.ResourceNameField))
+			return factory.Localizer().MustLocalizeError("kafka.errors.noAclFieldGiven", localize.NewEntry("Field", acl.ResourceNameField))
 		}
 
-		patternType, ok := element[acls.PatternTypeField].(string)
+		patternType, ok := element[acl.PatternTypeField].(string)
 		if !ok {
-			return factory.Localizer().MustLocalizeError("kafka.errors.noAclFieldGiven", localize.NewEntry("Field", acls.PatternTypeField))
+			return factory.Localizer().MustLocalizeError("kafka.errors.noAclFieldGiven", localize.NewEntry("Field", acl.PatternTypeField))
 		}
 
-		operationType, ok := element[acls.OperationTypeField].(string)
+		operationType, ok := element[acl.OperationTypeField].(string)
 		if !ok {
-			return factory.Localizer().MustLocalizeError("kafka.errors.noAclFieldGiven", localize.NewEntry("Field", acls.OperationTypeField))
+			return factory.Localizer().MustLocalizeError("kafka.errors.noAclFieldGiven", localize.NewEntry("Field", acl.OperationTypeField))
 		}
 
-		permissionType, ok := element[acls.PermissionTypeField].(string)
+		permissionType, ok := element[acl.PermissionTypeField].(string)
 		if !ok {
-			return factory.Localizer().MustLocalizeError("kafka.errors.noAclFieldGiven", localize.NewEntry("Field", acls.PermissionTypeField))
+			return factory.Localizer().MustLocalizeError("kafka.errors.noAclFieldGiven", localize.NewEntry("Field", acl.PermissionTypeField))
 		}
 
 		binding := kafkainstanceclient.NewAclBinding(

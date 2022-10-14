@@ -1,4 +1,4 @@
-package serviceaccounts
+package serviceaccount
 
 func fixClientIDAndClientSecret(items []map[string]interface{}, existingClientSecret *string) []map[string]interface{} {
 	// Fix the client id and client secret

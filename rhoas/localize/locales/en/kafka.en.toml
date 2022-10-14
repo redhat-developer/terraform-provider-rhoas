@@ -2,4 +2,4 @@
 one = 'there was a problem getting the acl defined in the kafka instance'
 
 [kafka.errors.noAclFieldGiven]
-one = 'the field "{{.Field}}" was not given in the kafkas ACL configuration'
+one = 'the field "{{.Field}}" was not provided in the ACL configuration of the kafka instance'

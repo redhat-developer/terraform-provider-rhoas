@@ -1,4 +1,4 @@
-package kafkas
+package kafka
 
 import (
 	"context"

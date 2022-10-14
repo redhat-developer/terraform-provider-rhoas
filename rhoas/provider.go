@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
-	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/acls"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/acl"
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/localize/goi18n"
 	"os"
 
@@ -14,10 +14,10 @@ import (
 	kafkamgmt "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1"
 	serviceAccounts "github.com/redhat-developer/app-services-sdk-go/serviceaccountmgmt/apiv1/client"
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/cloudproviders"
-	factories "github.com/redhat-developer/terraform-provider-rhoas/rhoas/factories"
-	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/kafkas"
-	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/serviceaccounts"
-	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/topics"
+	factories "github.com/redhat-developer/terraform-provider-rhoas/rhoas/factory"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/kafka"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/serviceaccount"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/topic"
 )
 
 // Generate the Terraform provider documentation using `tfplugindocs`:
@@ -57,19 +57,19 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"rhoas_kafka":           kafkas.ResourceKafka(),
-			"rhoas_topic":           topics.ResourceTopic(),
-			"rhoas_service_account": serviceaccounts.ResourceServiceAccount(),
-			"rhoas_acl":             acls.ResourceACL(),
+			"rhoas_kafka":           kafka.ResourceKafka(),
+			"rhoas_topic":           topic.ResourceTopic(),
+			"rhoas_service_account": serviceaccount.ResourceServiceAccount(),
+			"rhoas_acl":             acl.ResourceACL(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"rhoas_cloud_providers":        cloudproviders.DataSourceCloudProviders(),
 			"rhoas_cloud_provider_regions": cloudproviders.DataSourceCloudProviderRegions(),
-			"rhoas_kafkas":                 kafkas.DataSourceKafkas(),
-			"rhoas_kafka":                  kafkas.DataSourceKafka(),
-			"rhoas_topic":                  topics.DataSourceTopic(),
-			"rhoas_service_account":        serviceaccounts.DataSourceServiceAccount(),
-			"rhoas_service_accounts":       serviceaccounts.DataSourceServiceAccounts(),
+			"rhoas_kafkas":                 kafka.DataSourceKafkas(),
+			"rhoas_kafka":                  kafka.DataSourceKafka(),
+			"rhoas_topic":                  topic.DataSourceTopic(),
+			"rhoas_service_account":        serviceaccount.DataSourceServiceAccount(),
+			"rhoas_service_accounts":       serviceaccount.DataSourceServiceAccounts(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}

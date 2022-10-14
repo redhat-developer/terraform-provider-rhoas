@@ -1,4 +1,4 @@
-package serviceaccounts
+package serviceaccount
 
 import (
 	"context"

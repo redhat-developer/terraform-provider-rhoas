@@ -1,4 +1,4 @@
-package serviceaccounts
+package serviceaccount
 
 import (
 	"context"
@@ -20,49 +20,45 @@ const (
 	IDField          = "id"
 )
 
-func ServiceAccountSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		IDField: {
-			Description: "The unique id fir the service account",
-			Type:        schema.TypeString,
-			Computed:    true,
-			ForceNew:    true,
-		},
-		DescriptionField: {
-			Description: "A description of the service account",
-			Type:        schema.TypeString,
-			Optional:    true,
-			Default:     "",
-			ForceNew:    true,
-		},
-		NameField: {
-			Description: "The name of the service account",
-			Type:        schema.TypeString,
-			Required:    true,
-			ForceNew:    true,
-		},
-		ClientIDField: {
-			Description: "The client id associated with the service account",
-			Type:        schema.TypeString,
-			Computed:    true,
-		},
-		ClientSecret: {
-			Type:        schema.TypeString,
-			Computed:    true,
-			Description: "The client secret associated with the service account. It must be stored by the client as the server will not return it after creation",
-		},
-	}
-}
-
 func ResourceServiceAccount() *schema.Resource {
 	return &schema.Resource{
 		Description:   "`rhoas_service_account` manages a service account in Red Hat OpenShift Streams for Apache Kafka.",
 		CreateContext: serviceAccountCreate,
 		ReadContext:   serviceAccountRead,
 		DeleteContext: serviceAccountDelete,
-		Schema:        ServiceAccountSchema(),
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(20 * time.Minute),
+		},
+		Schema: map[string]*schema.Schema{
+			IDField: {
+				Description: "The unique id fir the service account",
+				Type:        schema.TypeString,
+				Computed:    true,
+				ForceNew:    true,
+			},
+			DescriptionField: {
+				Description: "A description of the service account",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     "",
+				ForceNew:    true,
+			},
+			NameField: {
+				Description: "The name of the service account",
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
+			},
+			ClientIDField: {
+				Description: "The client id associated with the service account",
+				Type:        schema.TypeString,
+				Computed:    true,
+			},
+			ClientSecret: {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The client secret associated with the service account. It must be stored by the client as the server will not return it after creation",
+			},
 		},
 	}
 }
