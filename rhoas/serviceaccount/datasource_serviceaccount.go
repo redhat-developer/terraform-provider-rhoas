@@ -35,12 +35,6 @@ func DataSourceServiceAccount(localizer localize.Localizer) *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
-			ClientSecret: {
-				Description: localizer.MustLocalize("serviceaccount.resource.field.description.clientSecret"),
-				Type:        schema.TypeString,
-				Computed:    true,
-				Sensitive:   true,
-			},
 			CreatedByField: {
 				Description: localizer.MustLocalize("serviceaccount.resource.field.description.createdBy"),
 				Type:        schema.TypeString,

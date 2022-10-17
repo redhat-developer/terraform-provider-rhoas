@@ -158,7 +158,6 @@ data "rhoas_service_account" "test" {
 					),
 					// The secret is only retrieved in the creation, not in a data source
 					resource.TestCheckResourceAttrSet(serviceAccountPath, "client_secret"),
-					resource.TestCheckResourceAttr(dataSourcePath, "client_secret", ""),
 					resource.TestCheckResourceAttrPair(
 						serviceAccountPath, "created_by",
 						dataSourcePath, "created_by",

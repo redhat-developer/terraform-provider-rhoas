@@ -155,6 +155,11 @@ func serviceAccountCreate(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.FromErr(err)
 	}
 
+	// This is only valid when creating, so running it out of setResourceDataFromServiceAccountData
+	if err = d.Set(ClientSecret, serviceAccount.GetSecret()); err != nil {
+		return diag.FromErr(err)
+	}
+
 	return diags
 }
 
@@ -197,10 +202,6 @@ func setResourceDataFromServiceAccountData(d *schema.ResourceData, serviceAccoun
 	}
 
 	if err = d.Set(NameField, serviceAccount.GetName()); err != nil {
-		return err
-	}
-
-	if err = d.Set(ClientSecret, serviceAccount.GetSecret()); err != nil {
 		return err
 	}
 
