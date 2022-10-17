@@ -90,6 +90,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		os.Exit(1)
 	}
 
+	// nolint: contextcheck
 	httpClient := authAPI.BuildAuthenticatedHTTPClient(d.Get("offline_token").(string))
 
 	kafkaClient := kafkamgmt.NewAPIClient(&kafkamgmt.Config{
