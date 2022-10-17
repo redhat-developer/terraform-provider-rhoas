@@ -7,8 +7,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
+	rhoasAPI "github.com/redhat-developer/terraform-provider-rhoas/rhoas/api"
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/utils"
-	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
 )
 
 func DataSourceCloudProviderRegions() *schema.Resource {
@@ -53,7 +54,7 @@ func dataSourceCloudProviderRegionsRead(ctx context.Context, d *schema.ResourceD
 
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Clients)
+	api, ok := m.(rhoasAPI.Factory)
 	if !ok {
 		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
 	}

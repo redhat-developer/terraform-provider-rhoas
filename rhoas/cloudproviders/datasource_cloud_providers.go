@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
+	rhoasAPI "github.com/redhat-developer/terraform-provider-rhoas/rhoas/api"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -53,7 +53,7 @@ func dataSourceCloudProvidersRead(ctx context.Context, d *schema.ResourceData, m
 
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Clients)
+	api, ok := m.(rhoasAPI.Factory)
 	if !ok {
 		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
 	}
