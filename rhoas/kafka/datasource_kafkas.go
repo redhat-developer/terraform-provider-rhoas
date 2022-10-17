@@ -119,7 +119,7 @@ func dataSourceKafkasRead(ctx context.Context, d *schema.ResourceData, m interfa
 		}
 	}
 
-	if err := d.Set("kafkas", flattenOrderItemsData(kafkas.Items)); err != nil {
+	if err := d.Set("kafkas", flattenKafkas(kafkas.Items)); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -134,7 +134,7 @@ func dataSourceKafkasRead(ctx context.Context, d *schema.ResourceData, m interfa
 	return diags
 }
 
-func flattenOrderItemsData(kafkas []kafkamgmtclient.KafkaRequest) []interface{} {
+func flattenKafkas(kafkas []kafkamgmtclient.KafkaRequest) []interface{} {
 	if kafkas != nil {
 		ks := make([]interface{}, len(kafkas), len(kafkas))
 

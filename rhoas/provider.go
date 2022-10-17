@@ -3,16 +3,18 @@ package rhoas
 import (
 	"context"
 	"fmt"
+	"os"
+
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/acl"
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/localize/goi18n"
-	"os"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	authAPI "github.com/redhat-developer/app-services-sdk-go/auth/apiv1"
 	kafkamgmt "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1"
 	serviceAccounts "github.com/redhat-developer/app-services-sdk-go/serviceaccountmgmt/apiv1/client"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/cloudproviders"
 	factories "github.com/redhat-developer/terraform-provider-rhoas/rhoas/factory"
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/kafka"
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/serviceaccount"
@@ -68,9 +70,11 @@ func Provider() *schema.Provider {
 			"rhoas_acl":             acl.ResourceACL(localizer),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"rhoas_kafka":           kafka.DataSourceKafka(localizer),
-			"rhoas_topic":           topic.DataSourceTopic(localizer),
-			"rhoas_service_account": serviceaccount.DataSourceServiceAccount(localizer),
+			"rhoas_kafka":                  kafka.DataSourceKafka(localizer),
+			"rhoas_topic":                  topic.DataSourceTopic(localizer),
+			"rhoas_service_account":        serviceaccount.DataSourceServiceAccount(localizer),
+			"rhoas_cloud_providers":        cloudproviders.DataSourceCloudProviders(localizer),
+			"rhoas_cloud_provider_regions": cloudproviders.DataSourceCloudProviderRegions(localizer),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}
@@ -86,6 +90,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		os.Exit(1)
 	}
 
+	// nolint: contextcheck
 	httpClient := authAPI.BuildAuthenticatedHTTPClient(d.Get("offline_token").(string))
 
 	kafkaClient := kafkamgmt.NewAPIClient(&kafkamgmt.Config{
