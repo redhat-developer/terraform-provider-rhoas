@@ -54,12 +54,12 @@ func dataSourceCloudProvidersRead(ctx context.Context, d *schema.ResourceData, m
 
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Factory)
+	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
 		return diag.Errorf("unable to cast %v to *rhoasAPI.Factory", m)
 	}
 
-	data, resp, err := api.KafkaMgmt().GetCloudProviders(ctx).Execute()
+	data, resp, err := factory.KafkaMgmt().GetCloudProviders(ctx).Execute()
 	if err != nil {
 		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
 			return diag.FromErr(apiErr)
