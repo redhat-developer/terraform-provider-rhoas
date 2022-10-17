@@ -55,9 +55,9 @@ func dataSourceCloudProviderRegionsRead(ctx context.Context, d *schema.ResourceD
 
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Factory)
+	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
-		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
+		return diag.Errorf("unable to cast %v to *rhoasAPI.Factory", m)
 	}
 
 	val := d.Get("id")
@@ -66,7 +66,7 @@ func dataSourceCloudProviderRegionsRead(ctx context.Context, d *schema.ResourceD
 		return diag.Errorf("unable to cast %v to string", val)
 	}
 
-	data, resp, err := api.KafkaMgmt().GetCloudProviderRegions(ctx, id).Execute()
+	data, resp, err := factory.KafkaMgmt().GetCloudProviderRegions(ctx, id).Execute()
 	if err != nil {
 		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
 			return diag.FromErr(apiErr)
