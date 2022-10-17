@@ -71,7 +71,7 @@ func Provider() *schema.Provider {
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"rhoas_kafkas":                 kafka.DataSourceKafkas(localizer),
-			"rhoas_service_accounts":       serviceaccount.DataSourceServiceAccounts(),
+			"rhoas_service_accounts":       serviceaccount.DataSourceServiceAccounts(localizer),
 			"rhoas_kafka":                  kafka.DataSourceKafka(localizer),
 			"rhoas_topic":                  topic.DataSourceTopic(localizer),
 			"rhoas_service_account":        serviceaccount.DataSourceServiceAccount(localizer),

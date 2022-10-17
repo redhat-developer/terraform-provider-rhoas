@@ -41,7 +41,10 @@ func TestAccRHOASServiceAccount_Basic(t *testing.T) {
 						serviceAccountPath, "name", randomName),
 					resource.TestCheckResourceAttr(
 						serviceAccountPath, "description", ""),
-					// TODO: Add more checks?
+					resource.TestCheckResourceAttrSet(serviceAccountPath, "client_id"),
+					resource.TestCheckResourceAttrSet(serviceAccountPath, "client_secret"),
+					resource.TestCheckResourceAttrSet(serviceAccountPath, "created_by"),
+					resource.TestCheckResourceAttrSet(serviceAccountPath, "created_at"),
 				),
 			},
 		},
@@ -153,6 +156,9 @@ data "rhoas_service_account" "test" {
 						serviceAccountPath, "id",
 						dataSourcePath, "id",
 					),
+					// The secret is only retrieved in the creation, not in a data source
+					resource.TestCheckResourceAttrSet(serviceAccountPath, "client_secret"),
+					resource.TestCheckResourceAttr(dataSourcePath, "client_secret", ""),
 					resource.TestCheckResourceAttrPair(
 						serviceAccountPath, "created_by",
 						dataSourcePath, "created_by",

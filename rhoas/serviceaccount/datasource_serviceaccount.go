@@ -2,6 +2,7 @@ package serviceaccount
 
 import (
 	"context"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	rhoasAPI "github.com/redhat-developer/terraform-provider-rhoas/rhoas/api"
@@ -37,6 +38,17 @@ func DataSourceServiceAccount(localizer localize.Localizer) *schema.Resource {
 			ClientSecret: {
 				Description: localizer.MustLocalize("serviceaccount.resource.field.description.clientSecret"),
 				Type:        schema.TypeString,
+				Computed:    true,
+				Sensitive:   true,
+			},
+			CreatedByField: {
+				Description: localizer.MustLocalize("serviceaccount.resource.field.description.createdBy"),
+				Type:        schema.TypeString,
+				Computed:    true,
+			},
+			CreatedAtField: {
+				Description: localizer.MustLocalize("serviceaccount.resource.field.description.createdAt"),
+				Type:        schema.TypeInt,
 				Computed:    true,
 			},
 		},
