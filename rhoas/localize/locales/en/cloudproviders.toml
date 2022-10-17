@@ -1,0 +1,5 @@
+[rhoas_cloud_provider_regions.datasource.description]
+one = '`rhoas_cloud_provider_regions` provides a list of the regions available for Red Hat OpenShift Streams for Apache Kafka.'
+
+[rhoas_cloud_providers.datasource.description]
+one = '`rhoas_cloud_providers` provides a list of the cloud providers available for Red Hat OpenShift Streams for Apache Kafka.'

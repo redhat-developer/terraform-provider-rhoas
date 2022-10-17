@@ -2,21 +2,20 @@ package cloudproviders
 
 import (
 	"context"
-	"io"
-	"log"
 	"strconv"
 	"time"
 
-	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
+	rhoasAPI "github.com/redhat-developer/terraform-provider-rhoas/rhoas/api"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/localize"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/utils"
 )
 
-func DataSourceCloudProviders() *schema.Resource {
+func DataSourceCloudProviders(localizer localize.Localizer) *schema.Resource {
 	return &schema.Resource{
-		Description: "`rhoas_cloud_providers` provides a list of the cloud providers available for Red Hat OpenShift Streams for Apache Kafka.",
+		Description: localizer.MustLocalize("rhoas_cloud_providers.datasource.description"),
 		ReadContext: dataSourceCloudProvidersRead,
 		Schema: map[string]*schema.Schema{
 			"cloud_providers": {
@@ -55,18 +54,16 @@ func dataSourceCloudProvidersRead(ctx context.Context, d *schema.ResourceData, m
 
 	var diags diag.Diagnostics
 
-	c, ok := m.(*kafkamgmtclient.APIClient)
+	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
-		return diag.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
+		return diag.Errorf("unable to cast %v to *rhoasAPI.Factory", m)
 	}
 
-	data, resp, err := c.DefaultApi.GetCloudProviders(ctx).Execute()
+	data, resp, err := factory.KafkaMgmt().GetCloudProviders(ctx).Execute()
 	if err != nil {
-		bodyBytes, ioErr := io.ReadAll(resp.Body)
-		if ioErr != nil {
-			log.Fatal(ioErr)
+		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
+			return diag.FromErr(apiErr)
 		}
-		return diag.Errorf("%s%s", err.Error(), string(bodyBytes))
 	}
 
 	obj, err := utils.AsMap(data)

@@ -2,22 +2,21 @@ package cloudproviders
 
 import (
 	"context"
-	"io"
-	"log"
 	"strconv"
 	"time"
 
-	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
+	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
+	rhoasAPI "github.com/redhat-developer/terraform-provider-rhoas/rhoas/api"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/localize"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/utils"
 )
 
-func DataSourceCloudProviderRegions() *schema.Resource {
+func DataSourceCloudProviderRegions(localizer localize.Localizer) *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceCloudProviderRegionsRead,
-		Description: "`rhoas_cloud_providers_regions` provides a list of the regions available for Red Hat OpenShift Streams for Apache Kafka.",
+		Description: localizer.MustLocalize("rhoas_cloud_provider_regions.datasource.description"),
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:     schema.TypeString,
@@ -56,9 +55,9 @@ func dataSourceCloudProviderRegionsRead(ctx context.Context, d *schema.ResourceD
 
 	var diags diag.Diagnostics
 
-	c, ok := m.(*kafkamgmtclient.APIClient)
+	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
-		return diag.Errorf("unable to cast %v to *connection.KeycloakConnection", m)
+		return diag.Errorf("unable to cast %v to *rhoasAPI.Factory", m)
 	}
 
 	val := d.Get("id")
@@ -67,21 +66,14 @@ func dataSourceCloudProviderRegionsRead(ctx context.Context, d *schema.ResourceD
 		return diag.Errorf("unable to cast %v to string", val)
 	}
 
-	data, resp, err := c.DefaultApi.GetCloudProviderRegions(ctx, id).Execute()
+	data, resp, err := factory.KafkaMgmt().GetCloudProviderRegions(ctx, id).Execute()
 	if err != nil {
-		bodyBytes, ioErr := io.ReadAll(resp.Body)
-		if ioErr != nil {
-			log.Fatal(ioErr)
+		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
+			return diag.FromErr(apiErr)
 		}
-		return diag.Errorf("%s%s", err.Error(), string(bodyBytes))
 	}
 
-	obj, err := utils.AsMap(data)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	if err := d.Set("regions", obj["items"]); err != nil {
+	if err := d.Set("regions", flattenRegions(data.Items)); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -89,4 +81,25 @@ func dataSourceCloudProviderRegionsRead(ctx context.Context, d *schema.ResourceD
 	d.SetId(strconv.FormatInt(time.Now().Unix(), 10))
 
 	return diags
+}
+
+func flattenRegions(cloudRegionList []kafkamgmtclient.CloudRegion) []interface{} {
+	if cloudRegionList != nil {
+		cloudRegions := make([]interface{}, len(cloudRegionList), len(cloudRegionList))
+
+		for i := range cloudRegionList {
+			cloudRegion := make(map[string]interface{})
+
+			cloudRegion["display_name"] = cloudRegionList[i].GetDisplayName()
+			cloudRegion["enabled"] = cloudRegionList[i].GetEnabled()
+			cloudRegion["id"] = cloudRegionList[i].GetId()
+			cloudRegion["kind"] = cloudRegionList[i].GetKind()
+
+			cloudRegions[i] = cloudRegion
+		}
+
+		return cloudRegions
+	}
+
+	return make([]interface{}, 0)
 }

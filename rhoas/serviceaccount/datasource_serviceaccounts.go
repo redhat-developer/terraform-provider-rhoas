@@ -1,4 +1,4 @@
-package serviceaccounts
+package serviceaccount
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
+	rhoasAPI "github.com/redhat-developer/terraform-provider-rhoas/rhoas/api"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -40,6 +40,11 @@ func DataSourceServiceAccounts() *schema.Resource {
 							Type:        schema.TypeString,
 							Computed:    true,
 						},
+						"kind": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The kind of resource in the Factory",
+						},
 						"name": {
 							Description: "The name of the service account",
 							Type:        schema.TypeString,
@@ -66,12 +71,12 @@ func dataSourceKafkasRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Clients)
+	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
-		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
+		return diag.Errorf("unable to cast %v to *rhoasAPI.Factory", m)
 	}
 
-	data, resp, err := api.ServiceAccountMgmt().GetServiceAccounts(ctx).Execute()
+	data, resp, err := factory.ServiceAccountMgmt().GetServiceAccounts(ctx).Execute()
 	if err != nil {
 		bodyBytes, ioErr := io.ReadAll(resp.Body)
 		if ioErr != nil {

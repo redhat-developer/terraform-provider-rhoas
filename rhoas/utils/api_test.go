@@ -8,8 +8,8 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/utils"
 	"github.com/stretchr/testify/assert"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 )
 
 func TestAsMap(t *testing.T) {

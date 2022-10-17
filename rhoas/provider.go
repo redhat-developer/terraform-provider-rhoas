@@ -3,18 +3,26 @@ package rhoas
 import (
 	"context"
 	"fmt"
+	"os"
+
+	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/acl"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/localize/goi18n"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	authAPI "github.com/redhat-developer/app-services-sdk-go/auth/apiv1"
 	kafkamgmt "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1"
 	serviceAccounts "github.com/redhat-developer/app-services-sdk-go/serviceaccountmgmt/apiv1/client"
-	rhoasClients "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/clients"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/cloudproviders"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/kafkas"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/serviceaccounts"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/topics"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/cloudproviders"
+	factories "github.com/redhat-developer/terraform-provider-rhoas/rhoas/factory"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/kafka"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/serviceaccount"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/topic"
 )
+
+// Generate the Terraform provider documentation using `tfplugindocs`:
+//go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
 
 const (
 	DefaultAPIURL = "https://api.openshift.com"
@@ -22,6 +30,12 @@ const (
 
 // Provider -
 func Provider() *schema.Provider {
+
+	localizer, err := goi18n.New(nil)
+	if err != nil {
+		return nil
+	}
+
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"offline_token": {
@@ -50,17 +64,19 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"rhoas_kafka":           kafkas.ResourceKafka(),
-			"rhoas_topic":           topics.ResourceTopic(),
-			"rhoas_service_account": serviceaccounts.ResourceServiceAccount(),
+			"rhoas_kafka":           kafka.ResourceKafka(localizer),
+			"rhoas_topic":           topic.ResourceTopic(localizer),
+			"rhoas_service_account": serviceaccount.ResourceServiceAccount(localizer),
+			"rhoas_acl":             acl.ResourceACL(localizer),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"rhoas_cloud_providers":        cloudproviders.DataSourceCloudProviders(),
-			"rhoas_cloud_provider_regions": cloudproviders.DataSourceCloudProviderRegions(),
-			"rhoas_kafkas":                 kafkas.DataSourceKafkas(),
-			"rhoas_kafka":                  kafkas.DataSourceKafka(),
-			"rhoas_service_account":        serviceaccounts.DataSourceServiceAccount(),
-			"rhoas_service_accounts":       serviceaccounts.DataSourceServiceAccounts(),
+			"rhoas_kafkas":                 kafka.DataSourceKafkas(localizer),
+			"rhoas_service_accounts":       serviceaccount.DataSourceServiceAccounts(),
+			"rhoas_kafka":                  kafka.DataSourceKafka(localizer),
+			"rhoas_topic":                  topic.DataSourceTopic(localizer),
+			"rhoas_service_account":        serviceaccount.DataSourceServiceAccount(localizer),
+			"rhoas_cloud_providers":        cloudproviders.DataSourceCloudProviders(localizer),
+			"rhoas_cloud_provider_regions": cloudproviders.DataSourceCloudProviderRegions(localizer),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}
@@ -69,6 +85,14 @@ func Provider() *schema.Provider {
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
+
+	localizer, err := goi18n.New(nil)
+	if err != nil {
+		tflog.Error(ctx, err.Error())
+		os.Exit(1)
+	}
+
+	// nolint: contextcheck
 	httpClient := authAPI.BuildAuthenticatedHTTPClient(d.Get("offline_token").(string))
 
 	kafkaClient := kafkamgmt.NewAPIClient(&kafkamgmt.Config{
@@ -81,7 +105,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 
 	// package both service account client and kafka client together to be used in the provider
 	// these are passed to each action we do and can be use to CRUD kafkas/serviceAccounts
-	client := rhoasClients.NewDefaultClient(kafkaClient, serviceAccountClient, httpClient)
+	factory := factories.NewDefaultFactory(kafkaClient, serviceAccountClient, httpClient, localizer)
 
-	return client, diags
+	return factory, diags
 }

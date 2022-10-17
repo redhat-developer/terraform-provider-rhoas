@@ -1,18 +1,24 @@
-package topics
+package topic
 
 import (
 	"context"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/localize"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/pkg/errors"
 	kafkainstanceclient "github.com/redhat-developer/app-services-sdk-go/kafkainstance/apiv1/client"
-	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
+	rhoasAPI "github.com/redhat-developer/terraform-provider-rhoas/rhoas/api"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/utils"
 )
 
-func ResourceTopic() *schema.Resource {
+const (
+	NameField       = "name"
+	PartitionsField = "partitions"
+	KafkaIDField    = "kafka_id"
+)
+
+func ResourceTopic(localizer localize.Localizer) *schema.Resource {
 	return &schema.Resource{
 		Description:   "`rhoas_topic` manages a topic in a  Kafka instance in Red Hat OpenShift Streams for Apache Kafka.",
 		CreateContext: topicCreate,
@@ -22,20 +28,20 @@ func ResourceTopic() *schema.Resource {
 			Create: schema.DefaultTimeout(20 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
-			"name": {
-				Description: "The name of the topic",
+			NameField: {
+				Description: localizer.MustLocalize("topic.resource.field.description.name"),
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 			},
-			"partitions": {
-				Description: "The number of partitions in the topic",
+			PartitionsField: {
+				Description: localizer.MustLocalize("topic.resource.field.description.partitions"),
 				Type:        schema.TypeInt,
 				Required:    true,
 				ForceNew:    true,
 			},
-			"kafka_id": {
-				Description: "The unique ID of the kafka instance this topic is associated with",
+			KafkaIDField: {
+				Description: localizer.MustLocalize("topic.resource.field.description.kafkaID"),
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
@@ -48,22 +54,23 @@ func topicDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Clients)
+	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
-		return diag.Errorf("unable to cast %v to rhoasAPI.Clients", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Factory", m)
 	}
 
-	kafkaID, ok := d.Get("kafka_id").(string)
+	kafkaID, ok := d.Get(KafkaIDField).(string)
 	if !ok {
-		return diag.FromErr(errors.Errorf("There was a problem getting the kafka ID value in the schema resource"))
+		return diag.FromErr(factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", KafkaIDField)))
+
 	}
 
-	topicName, ok := d.Get("name").(string)
+	topicName, ok := d.Get(NameField).(string)
 	if !ok {
-		return diag.FromErr(errors.Errorf("There was a problem getting the topic name value in the schema resource"))
+		return diag.FromErr(factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", NameField)))
 	}
 
-	instanceAPI, _, err := api.KafkaAdmin(&ctx, kafkaID)
+	instanceAPI, _, err := factory.KafkaAdmin(&ctx, kafkaID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -83,22 +90,22 @@ func topicRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Clients)
+	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
-		return diag.Errorf("unable to cast %v to rhoasAPI.Clients", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Factory", m)
 	}
 
-	kafkaID, ok := d.Get("kafka_id").(string)
+	kafkaID, ok := d.Get(KafkaIDField).(string)
 	if !ok {
-		return diag.FromErr(errors.Errorf("There was a problem getting the kafka ID value in the schema resource"))
+		return diag.FromErr(factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", KafkaIDField)))
 	}
 
-	topicName, ok := d.Get("name").(string)
+	topicName, ok := d.Get(NameField).(string)
 	if !ok {
-		return diag.FromErr(errors.Errorf("There was a problem getting the topic name value in the schema resource"))
+		return diag.FromErr(factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", NameField)))
 	}
 
-	instanceAPI, _, err := api.KafkaAdmin(&ctx, kafkaID)
+	instanceAPI, _, err := factory.KafkaAdmin(&ctx, kafkaID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -122,24 +129,24 @@ func topicCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	// Warning or errors can be collected in a slice type
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Clients)
+	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
-		return diag.Errorf("unable to cast %v to rhoasAPI.Clients", m)
+		return diag.Errorf("unable to cast %v to rhoasAPI.Factory", m)
 	}
 
-	kafkaID, ok := d.Get("kafka_id").(string)
+	kafkaID, ok := d.Get(KafkaIDField).(string)
 	if !ok {
-		return diag.FromErr(errors.Errorf("There was a problem getting the kafka ID value in the schema resource"))
+		return diag.FromErr(factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", KafkaIDField)))
 	}
 
-	instanceAPI, _, err := api.KafkaAdmin(&ctx, kafkaID)
+	instanceAPI, _, err := factory.KafkaAdmin(&ctx, kafkaID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	topicRequest := instanceAPI.TopicsApi.CreateTopic(ctx)
 
-	err = mapResourceDataToTopicRequest(d, &topicRequest)
+	err = mapResourceDataToTopicRequest(factory, d, &topicRequest)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -158,7 +165,7 @@ func topicCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 
 	d.SetId(topic.GetId())
 
-	if err = d.Set("kafka_id", kafkaID); err != nil {
+	if err = d.Set(KafkaIDField, kafkaID); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -168,27 +175,27 @@ func topicCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 func setResourceDataFromTopic(d *schema.ResourceData, topic *kafkainstanceclient.Topic) error {
 	var err error
 
-	if err = d.Set("name", topic.GetName()); err != nil {
+	if err = d.Set(NameField, topic.GetName()); err != nil {
 		return err
 	}
 
-	if err = d.Set("partitions", len(topic.GetPartitions())); err != nil {
+	if err = d.Set(PartitionsField, len(topic.GetPartitions())); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func mapResourceDataToTopicRequest(d *schema.ResourceData, request *kafkainstanceclient.ApiCreateTopicRequest) error {
+func mapResourceDataToTopicRequest(factory rhoasAPI.Factory, d *schema.ResourceData, request *kafkainstanceclient.ApiCreateTopicRequest) error {
 
-	name, ok := d.Get("name").(string)
+	name, ok := d.Get(NameField).(string)
 	if !ok {
-		return errors.Errorf("There was a problem getting the name value in the schema resource")
+		return factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", NameField))
 	}
 
-	partitions, ok := d.Get("partitions").(int)
+	partitions, ok := d.Get(PartitionsField).(int)
 	if !ok {
-		return errors.Errorf("There was a problem getting the partition value in the schema resource")
+		return factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", PartitionsField))
 	}
 
 	// terraform stores int types as just ints and fails if you
