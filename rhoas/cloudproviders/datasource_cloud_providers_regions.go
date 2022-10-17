@@ -2,8 +2,6 @@ package cloudproviders
 
 import (
 	"context"
-	"io"
-	"log"
 	"strconv"
 	"time"
 
@@ -11,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
 	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
+	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
 )
 
 func DataSourceCloudProviderRegions() *schema.Resource {
@@ -68,11 +67,9 @@ func dataSourceCloudProviderRegionsRead(ctx context.Context, d *schema.ResourceD
 
 	data, resp, err := api.KafkaMgmt().GetCloudProviderRegions(ctx, id).Execute()
 	if err != nil {
-		bodyBytes, ioErr := io.ReadAll(resp.Body)
-		if ioErr != nil {
-			log.Fatal(ioErr)
+		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
+			return diag.FromErr(apiErr)
 		}
-		return diag.Errorf("%s%s", err.Error(), string(bodyBytes))
 	}
 
 	if err := d.Set("regions", flattenRegions(data.Items)); err != nil {

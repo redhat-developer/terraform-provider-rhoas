@@ -2,8 +2,6 @@ package cloudproviders
 
 import (
 	"context"
-	"io"
-	"log"
 	"strconv"
 	"time"
 
@@ -62,11 +60,9 @@ func dataSourceCloudProvidersRead(ctx context.Context, d *schema.ResourceData, m
 
 	data, resp, err := api.KafkaMgmt().GetCloudProviders(ctx).Execute()
 	if err != nil {
-		bodyBytes, ioErr := io.ReadAll(resp.Body)
-		if ioErr != nil {
-			log.Fatal(ioErr)
+		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
+			return diag.FromErr(apiErr)
 		}
-		return diag.Errorf("%s%s", err.Error(), string(bodyBytes))
 	}
 
 	obj, err := utils.AsMap(data)
