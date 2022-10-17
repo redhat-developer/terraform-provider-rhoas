@@ -73,8 +73,8 @@ func Provider() *schema.Provider {
 			"rhoas_kafka":                  kafka.DataSourceKafka(localizer),
 			"rhoas_topic":                  topic.DataSourceTopic(localizer),
 			"rhoas_service_account":        serviceaccount.DataSourceServiceAccount(localizer),
-			"rhoas_cloud_providers":        cloudproviders.DataSourceCloudProviders(),
-			"rhoas_cloud_provider_regions": cloudproviders.DataSourceCloudProviderRegions(),
+			"rhoas_cloud_providers":        cloudproviders.DataSourceCloudProviders(localizer),
+			"rhoas_cloud_provider_regions": cloudproviders.DataSourceCloudProviderRegions(localizer),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}

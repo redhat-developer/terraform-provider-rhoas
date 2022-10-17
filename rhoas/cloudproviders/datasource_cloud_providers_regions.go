@@ -9,13 +9,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
 	rhoasAPI "github.com/redhat-developer/terraform-provider-rhoas/rhoas/api"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/localize"
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/utils"
 )
 
-func DataSourceCloudProviderRegions() *schema.Resource {
+func DataSourceCloudProviderRegions(localizer localize.Localizer) *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceCloudProviderRegionsRead,
-		Description: "`rhoas_cloud_provider_regions` provides a list of the regions available for Red Hat OpenShift Streams for Apache Kafka.",
+		Description: localizer.MustLocalize("rhoas_cloud_provider_regions.datasource.description"),
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:     schema.TypeString,

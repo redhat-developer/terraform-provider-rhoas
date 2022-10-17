@@ -6,15 +6,16 @@ import (
 	"time"
 
 	rhoasAPI "github.com/redhat-developer/terraform-provider-rhoas/rhoas/api"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/localize"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/utils"
 )
 
-func DataSourceCloudProviders() *schema.Resource {
+func DataSourceCloudProviders(localizer localize.Localizer) *schema.Resource {
 	return &schema.Resource{
-		Description: "`rhoas_cloud_providers` provides a list of the cloud providers available for Red Hat OpenShift Streams for Apache Kafka.",
+		Description: localizer.MustLocalize("rhoas_cloud_providers.datasource.description"),
 		ReadContext: dataSourceCloudProvidersRead,
 		Schema: map[string]*schema.Schema{
 			"cloud_providers": {
