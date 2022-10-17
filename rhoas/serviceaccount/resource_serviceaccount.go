@@ -18,6 +18,8 @@ const (
 	ClientIDField    = "client_id"
 	ClientSecret     = "client_secret"
 	IDField          = "id"
+	CreatedByField   = "created_by"
+	CreatedAtField   = "created_at"
 )
 
 func ResourceServiceAccount(localizer localize.Localizer) *schema.Resource {
@@ -57,6 +59,17 @@ func ResourceServiceAccount(localizer localize.Localizer) *schema.Resource {
 			ClientSecret: {
 				Description: localizer.MustLocalize("serviceaccount.resource.field.description.clientSecret"),
 				Type:        schema.TypeString,
+				Computed:    true,
+				Sensitive:   true,
+			},
+			CreatedByField: {
+				Description: localizer.MustLocalize("serviceaccount.resource.field.description.createdBy"),
+				Type:        schema.TypeString,
+				Computed:    true,
+			},
+			CreatedAtField: {
+				Description: localizer.MustLocalize("serviceaccount.resource.field.description.createdAt"),
+				Type:        schema.TypeInt,
 				Computed:    true,
 			},
 		},
@@ -142,6 +155,11 @@ func serviceAccountCreate(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.FromErr(err)
 	}
 
+	// This is only valid when creating, so running it out of setResourceDataFromServiceAccountData
+	if err = d.Set(ClientSecret, serviceAccount.GetSecret()); err != nil {
+		return diag.FromErr(err)
+	}
+
 	return diags
 }
 
@@ -184,6 +202,14 @@ func setResourceDataFromServiceAccountData(d *schema.ResourceData, serviceAccoun
 	}
 
 	if err = d.Set(NameField, serviceAccount.GetName()); err != nil {
+		return err
+	}
+
+	if err = d.Set(CreatedByField, serviceAccount.GetCreatedBy()); err != nil {
+		return err
+	}
+
+	if err = d.Set(CreatedAtField, serviceAccount.GetCreatedAt()); err != nil {
 		return err
 	}
 

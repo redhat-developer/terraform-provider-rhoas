@@ -36,12 +36,15 @@ func TestAccRHOASServiceAccount_Basic(t *testing.T) {
 				Config: testAccServiceAccountBasic(serviceAccountID, randomName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckServiceAccountExists(
-						serviceAccountPath, &serviceAccount),
+						&serviceAccount),
 					resource.TestCheckResourceAttr(
 						serviceAccountPath, "name", randomName),
 					resource.TestCheckResourceAttr(
 						serviceAccountPath, "description", ""),
-					// TODO: Add more checks?
+					resource.TestCheckResourceAttrSet(serviceAccountPath, "client_id"),
+					resource.TestCheckResourceAttrSet(serviceAccountPath, "client_secret"),
+					resource.TestCheckResourceAttrSet(serviceAccountPath, "created_by"),
+					resource.TestCheckResourceAttrSet(serviceAccountPath, "created_at"),
 				),
 			},
 		},
@@ -74,7 +77,7 @@ func TestAccRHOASServiceAccount_Update(t *testing.T) {
 				Config: testAccServiceAccountBasic(serviceAccountID, preName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckServiceAccountExists(
-						serviceAccountPath, &preServiceAccount),
+						&preServiceAccount),
 					resource.TestCheckResourceAttr(
 						serviceAccountPath, "name", preName),
 				),
@@ -83,7 +86,7 @@ func TestAccRHOASServiceAccount_Update(t *testing.T) {
 				Config: testAccServiceAccountBasic(serviceAccountID, postName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckServiceAccountExists(
-						serviceAccountPath, &postServiceAccount),
+						&postServiceAccount),
 					resource.TestCheckResourceAttr(
 						serviceAccountPath, "name", postName),
 					testCheckServiceAccountPreAndPostIDs(&preServiceAccount, &postServiceAccount),
@@ -111,6 +114,62 @@ func TestAccRHOASServiceAccount_Error(t *testing.T) {
 		},
 	})
 
+}
+
+// TestAccRHOASServiceAccount_DataSource checks the rhoas_service_account data source behavior
+func TestAccRHOASServiceAccount_DataSource(t *testing.T) {
+	var serviceAccount saclient.ServiceAccountData
+	randomName := fmt.Sprintf("test-%s", randomString(10))
+	config := fmt.Sprintf(`
+resource "rhoas_service_account" "%[1]s" {
+  name = "%[2]s"
+}
+
+data "rhoas_service_account" "test" {
+	id = rhoas_service_account.%[1]s.id
+}`, serviceAccountID, randomName)
+
+	dataSourcePath := "data.rhoas_service_account.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckServiceAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckServiceAccountExists(&serviceAccount),
+					resource.TestCheckResourceAttrPair(
+						serviceAccountPath, "name",
+						dataSourcePath, "name",
+					),
+					resource.TestCheckResourceAttrPair(
+						serviceAccountPath, "client_id",
+						dataSourcePath, "client_id",
+					),
+					resource.TestCheckResourceAttrPair(
+						serviceAccountPath, "description",
+						dataSourcePath, "description",
+					),
+					resource.TestCheckResourceAttrPair(
+						serviceAccountPath, "id",
+						dataSourcePath, "id",
+					),
+					// The secret is only retrieved in the creation, not in a data source
+					resource.TestCheckResourceAttrSet(serviceAccountPath, "client_secret"),
+					resource.TestCheckResourceAttrPair(
+						serviceAccountPath, "created_by",
+						dataSourcePath, "created_by",
+					),
+					resource.TestCheckResourceAttrPair(
+						serviceAccountPath, "created_at",
+						dataSourcePath, "created_at",
+					),
+				),
+			},
+		},
+	})
 }
 
 // testAccCheckServiceAccountDestroy verifies the service account has been destroyed
@@ -144,12 +203,13 @@ func testAccCheckServiceAccountDestroy(s *terraform.State) error {
 	return nil
 }
 
-// testAccCheckServiceAccountDestroy verifies the service account exists
-func testAccCheckServiceAccountExists(resource string, serviceAccount *saclient.ServiceAccountData) resource.TestCheckFunc {
+// testAccCheckServiceAccountDestroy verifies the service account at "rhoas_service_account.test_service_account" exists
+func testAccCheckServiceAccountExists(serviceAccount *saclient.ServiceAccountData) resource.TestCheckFunc {
+
 	return func(state *terraform.State) error {
-		rs, ok := state.RootModule().Resources[resource]
+		rs, ok := state.RootModule().Resources[serviceAccountPath]
 		if !ok {
-			return fmt.Errorf("Not found: %s", resource)
+			return fmt.Errorf("Not found: %s", serviceAccountPath)
 		}
 		if rs.Primary.ID == "" {
 			return fmt.Errorf("No Record ID is set")

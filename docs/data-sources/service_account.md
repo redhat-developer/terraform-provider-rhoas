@@ -17,12 +17,13 @@ description: |-
 
 ### Required
 
-- `id` (String) The unique id fir the service account
+- `id` (String) The unique identifier for the service account
 
 ### Read-Only
 
 - `client_id` (String) The client id associated with the service account
-- `client_secret` (String) The client secret associated with the service account
+- `created_at` (Number) The RFC3339 date and time at which the service account was created
+- `created_by` (String) The username of the Red Hat account that owns the service account
 - `description` (String) A description of the service account
 - `name` (String) The name of the service account
 
