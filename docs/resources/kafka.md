@@ -42,8 +42,9 @@ output "bootstrap_server_foo" {
 
 ### Optional
 
-- `cloud_provider` (String) The cloud provider to use. A list of available cloud providers can be obtained using `data.rhoas_cloud_providers`.
-- `region` (String) The region to use. A list of available regions can be obtained using `data.rhoas_cloud_providers_regions`.
+- `acl` (List of Map of String) The ACL binding configuration for the kafka instance
+- `cloud_provider` (String) The cloud provider to use. A list of available cloud providers can be obtained using `data.rhoas_cloud_providers`
+- `region` (String) The region to use. A list of available regions can be obtained using `data.rhoas_cloud_providers_regions`
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
 ### Read-Only

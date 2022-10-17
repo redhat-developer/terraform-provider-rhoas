@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/utils"
 )
 
 func DataSourceCloudProviders() *schema.Resource {

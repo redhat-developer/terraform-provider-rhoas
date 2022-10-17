@@ -70,4 +70,13 @@ testacc:
 lint:
 	golangci-lint run
 
+.PHONY: clean
+clean:
+	@rm -f .terraform.lock.hcl
+	@rm -f .terraform.tfstate.lock.info
+	@rm -f terraform.tfstate
+	@rm -f terraform.tfstate.backup
 
+.PHONY: generate-doc
+generate-doc:
+	go generate ./...

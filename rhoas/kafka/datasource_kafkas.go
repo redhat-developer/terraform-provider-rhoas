@@ -1,18 +1,19 @@
-package kafkas
+package kafka
 
 import (
 	"context"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/localize"
 	"strconv"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	kafkamgmtclient "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/client"
-	rhoasAPI "redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/api"
-	"redhat.com/rhoas/rhoas-terraform-provider/m/rhoas/utils"
+	rhoasAPI "github.com/redhat-developer/terraform-provider-rhoas/rhoas/api"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/utils"
 )
 
-func DataSourceKafkas() *schema.Resource {
+func DataSourceKafkas(localizer localize.Localizer) *schema.Resource {
 	return &schema.Resource{
 		Description: "`rhoas_kafkas` provides a list of the Kafkas accessible to your organization in Red Hat OpenShift Streams for Apache Kafka.",
 		ReadContext: dataSourceKafkasRead,
@@ -29,73 +30,63 @@ func DataSourceKafkas() *schema.Resource {
 				Computed:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"cloud_provider": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The cloud provider to use. A list of available cloud providers can be obtained using `data.rhoas_cloud_providers`.",
-						},
-						"multi_az": {
-							Type:        schema.TypeBool,
-							Computed:    true,
-							Description: "Whether the Kafka instance should be highly available by supporting multi-az",
-						},
-						"region": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The region to use. A list of available regions can be obtained using `data.rhoas_cloud_providers_regions`.",
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The name of the Kafka instance",
-						},
-						"href": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The path to the Kafka instance in the REST Clients",
-						},
-						"status": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The status of the Kafka instance",
-						},
-						"owner": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The username of the Red Hat account that owns the Kafka instance",
-						},
-						"bootstrap_server_host": {
-							Description: "The bootstrap server (host:port)",
+						CloudProviderField: {
+							Description: localizer.MustLocalize("kafka.resource.field.description.cloudProvider"),
 							Type:        schema.TypeString,
 							Computed:    true,
 						},
-						"created_at": {
-							Description: "The RFC3339 date and time at which the Kafka instance was created",
+						RegionField: {
+							Description: localizer.MustLocalize("kafka.resource.field.description.region"),
 							Type:        schema.TypeString,
 							Computed:    true,
 						},
-						"updated_at": {
-							Description: "The RFC3339 date and time at which the Kafka instance was last updated",
+						NameField: {
+							Description: localizer.MustLocalize("kafka.resource.field.description.name"),
 							Type:        schema.TypeString,
 							Computed:    true,
 						},
-						"id": {
-							Description: "The unique identifier for the Kafka instance",
+						HrefField: {
+							Description: localizer.MustLocalize("kafka.resource.field.description.href"),
 							Type:        schema.TypeString,
 							Computed:    true,
 						},
-						"kind": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "The kind of resource in the Clients",
-						},
-						"version": {
-							Description: "The version of Kafka the instance is using",
+						StatusField: {
+							Description: localizer.MustLocalize("kafka.resource.field.description.status"),
 							Type:        schema.TypeString,
 							Computed:    true,
 						},
-						"failed_reason": {
-							Description: "The reason the instance failed",
+						OwnerField: {
+							Description: localizer.MustLocalize("kafka.resource.field.description.owner"),
+							Type:        schema.TypeString,
+							Computed:    true,
+						},
+						BootstrapServerHostField: {
+							Description: localizer.MustLocalize("kafka.resource.field.description.bootstrapServerHost"),
+							Type:        schema.TypeString,
+							Computed:    true,
+						},
+						CreatedAtField: {
+							Description: localizer.MustLocalize("kafka.resource.field.description.createdAt"),
+							Type:        schema.TypeString,
+							Computed:    true,
+						},
+						UpdatedAtField: {
+							Description: localizer.MustLocalize("kafka.resource.field.description.updatedAt"),
+							Type:        schema.TypeString,
+							Computed:    true,
+						},
+						IDField: {
+							Description: localizer.MustLocalize("kafka.datasource.field.description.id"),
+							Type:        schema.TypeString,
+							Required:    true,
+						},
+						KindField: {
+							Description: localizer.MustLocalize("kafka.resource.field.description.kind"),
+							Type:        schema.TypeString,
+							Computed:    true,
+						},
+						VersionField: {
+							Description: localizer.MustLocalize("kafka.resource.field.description.version"),
 							Type:        schema.TypeString,
 							Computed:    true,
 						},
@@ -110,9 +101,9 @@ func dataSourceKafkasRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 	var diags diag.Diagnostics
 
-	api, ok := m.(rhoasAPI.Clients)
+	factory, ok := m.(rhoasAPI.Factory)
 	if !ok {
-		return diag.Errorf("unable to cast %v to *rhoasClients.Clients", m)
+		return diag.Errorf("unable to cast %v to *rhoasAPI.Factory", m)
 	}
 
 	val := d.Get("id")
@@ -121,7 +112,7 @@ func dataSourceKafkasRead(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.Errorf("unable to cast %v to string", val)
 	}
 
-	kafkas, resp, err := api.KafkaMgmt().GetKafkas(ctx).Execute()
+	kafkas, resp, err := factory.KafkaMgmt().GetKafkas(ctx).Execute()
 	if err != nil {
 		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
 			return diag.FromErr(apiErr)
