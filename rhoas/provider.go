@@ -3,6 +3,7 @@ package rhoas
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -93,10 +94,13 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		os.Exit(1)
 	}
 
-	// nolint: contextcheck
-	httpClient := authAPI.BuildAuthenticatedHTTPClient(d.Get("offline_token").(string))
-
 	localDevelopmentServer := os.Getenv(LocalDevelopmentEnv)
+
+	httpClient := &http.Client{}
+	if localDevelopmentServer == "" {
+		// nolint: contextcheck
+		httpClient = authAPI.BuildAuthenticatedHTTPClient(d.Get("offline_token").(string))
+	}
 
 	kafkaClient := kafkamgmt.NewAPIClient(&kafkamgmt.Config{
 		HTTPClient: httpClient,
