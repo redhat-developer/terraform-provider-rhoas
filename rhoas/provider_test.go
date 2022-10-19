@@ -2,6 +2,7 @@ package rhoas_test
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -19,6 +20,15 @@ func TestProviderIsValid(t *testing.T) {
 
 // TestProviderConfigure checks that the RHOAS client is created
 func TestProviderConfigure(t *testing.T) {
+	diag := rhoas.Provider().Configure(context.TODO(), &terraform.ResourceConfig{})
+	assert.Empty(t, diag, "got unexpected diagnostics")
+}
+
+// TestProviderConfigureLocalServer checks that the RHOAS provider can be configured to work with a local server
+func TestProviderConfigureLocalServer(t *testing.T) {
+	os.Setenv(rhoas.LocalDevelopmentEnv, "http://localhost:8000")
+	defer os.Setenv(rhoas.LocalDevelopmentEnv, "")
+
 	diag := rhoas.Provider().Configure(context.TODO(), &terraform.ResourceConfig{})
 	assert.Empty(t, diag, "got unexpected diagnostics")
 }
