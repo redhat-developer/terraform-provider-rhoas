@@ -4,14 +4,29 @@ one = 'there was a problem getting the acl defined in the kafka instance'
 [kafka.errors.noAclFieldGiven]
 one = 'the field "{{.Field}}" was not provided in the ACL configuration of the kafka instance'
 
+[kafka.resource.field.description.name]
+one = 'The name of the Kafka instance'
+
 [kafka.resource.field.description.cloudProvider]
 one = 'The cloud provider to use. A list of available cloud providers can be obtained using `data.rhoas_cloud_providers`'
 
 [kafka.resource.field.description.region]
 one = 'The region to use. A list of available regions can be obtained using `data.rhoas_cloud_providers_regions`'
 
-[kafka.resource.field.description.name]
-one = 'The name of the Kafka instance'
+[kafka.resource.field.description.reauthenticationEnabled]
+one = 'Enable reauthentication for kafka instance'
+
+[kafka.resource.field.description.plan]
+one = 'Plan for the kafka instance'
+
+[kafka.resource.field.description.billingCloudAccountId]
+one = 'Billing cloud account id for the Kafka instance'
+
+[kafka.resource.field.description.marketplace]
+one = 'The marketplace for the kafka instance'
+
+[kafka.resource.field.description.billingModel]
+one = 'Billing model for the Kafka instance'
 
 [kafka.resource.field.description.href]
 one = 'The path to the Kafka instance in the REST API'

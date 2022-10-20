@@ -18,21 +18,29 @@ import (
 )
 
 const (
-	CloudProviderField       = "cloud_provider"
-	RegionField              = "region"
-	NameField                = "name"
-	HrefField                = "href"
-	StatusField              = "status"
-	OwnerField               = "owner"
-	BootstrapServerHostField = "bootstrap_server_host"
-	CreatedAtField           = "created_at"
-	UpdatedAtField           = "updated_at"
-	IDField                  = "id"
-	KindField                = "kind"
-	VersionField             = "version"
-	ACLField                 = "acl"
+	NameField                    = "name"
+	CloudProviderField           = "cloud_provider"
+	RegionField                  = "region"
+	ReauthenticationEnabledField = "reauthentication_enabled"
+	PlanField                    = "plan"
+	BillingCloudAccountIDField   = "billing_cloud_account_id"
+	MarketPlaceField             = "marketplace"
+	BillingModelField            = "billing_model"
+	HrefField                    = "href"
+	StatusField                  = "status"
+	OwnerField                   = "owner"
+	BootstrapServerHostField     = "bootstrap_server_host"
+	CreatedAtField               = "created_at"
+	UpdatedAtField               = "updated_at"
+	IDField                      = "id"
+	KindField                    = "kind"
+	VersionField                 = "version"
+	ACLField                     = "acl"
+
+	DefaultEmptyField = ""
 )
 
+// nolint:funlen
 func ResourceKafka(localizer localize.Localizer) *schema.Resource {
 	return &schema.Resource{
 		Description:   "`rhoas_kafka` manages a Kafka instance in Red Hat OpenShift Streams for Apache Kafka.",
@@ -43,6 +51,12 @@ func ResourceKafka(localizer localize.Localizer) *schema.Resource {
 			Create: schema.DefaultTimeout(20 * time.Minute),
 		},
 		Schema: map[string]*schema.Schema{
+			NameField: {
+				Description: localizer.MustLocalize("kafka.resource.field.description.name"),
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
+			},
 			CloudProviderField: {
 				Description: localizer.MustLocalize("kafka.resource.field.description.cloudProvider"),
 				Type:        schema.TypeString,
@@ -57,8 +71,35 @@ func ResourceKafka(localizer localize.Localizer) *schema.Resource {
 				Default:     "us-east-1",
 				ForceNew:    true,
 			},
-			NameField: {
-				Description: localizer.MustLocalize("kafka.resource.field.description.name"),
+			ReauthenticationEnabledField: {
+				Description: localizer.MustLocalize("kafka.resource.field.description.reauthenticationEnabled"),
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     true,
+				ForceNew:    true,
+			},
+			PlanField: {
+				Description: localizer.MustLocalize("kafka.resource.field.description.plan"),
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
+			},
+			BillingCloudAccountIDField: {
+				Description: localizer.MustLocalize("kafka.resource.field.description.billingCloudAccountId"),
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     DefaultEmptyField,
+				ForceNew:    true,
+			},
+			MarketPlaceField: {
+				Description: localizer.MustLocalize("kafka.resource.field.description.marketplace"),
+				Type:        schema.TypeString,
+				Optional:    true,
+				Default:     DefaultEmptyField,
+				ForceNew:    true,
+			},
+			BillingModelField: {
+				Description: localizer.MustLocalize("kafka.resource.field.description.billingModel"),
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
@@ -358,15 +399,12 @@ func createACLForKafka(ctx context.Context, factory rhoasAPI.Factory, d *schema.
 func setResourceDataFromKafkaData(d *schema.ResourceData, kafka *kafkamgmtclient.KafkaRequest) error {
 	var err error
 
-	if err = d.Set(CloudProviderField, kafka.GetCloudProvider()); err != nil {
+	// any computed field is then set here
+	if err = d.Set(BillingCloudAccountIDField, kafka.GetBillingCloudAccountId()); err != nil {
 		return err
 	}
 
-	if err = d.Set(RegionField, kafka.GetRegion()); err != nil {
-		return err
-	}
-
-	if err = d.Set(NameField, kafka.GetName()); err != nil {
+	if err = d.Set(MarketPlaceField, kafka.GetMarketplace()); err != nil {
 		return err
 	}
 
@@ -411,9 +449,12 @@ func setResourceDataFromKafkaData(d *schema.ResourceData, kafka *kafkamgmtclient
 
 func mapResourceDataToKafkaPayload(factory rhoasAPI.Factory, d *schema.ResourceData) (*kafkamgmtclient.KafkaRequestPayload, error) {
 
-	// we only set these values from the resource data as all the rest are set as
-	// computed in the schema and for us the computed values are assigned when we
-	// get the kafka request object back from the API
+	// any required fields and optionals with defaults values are set from here
+	name, ok := d.Get(NameField).(string)
+	if !ok {
+		return nil, factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", NameField))
+	}
+
 	cloudProvider, ok := d.Get(CloudProviderField).(string)
 	if !ok {
 		return nil, factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", CloudProviderField))
@@ -424,15 +465,48 @@ func mapResourceDataToKafkaPayload(factory rhoasAPI.Factory, d *schema.ResourceD
 		return nil, factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", RegionField))
 	}
 
-	name, ok := d.Get(NameField).(string)
+	reauthenticationEnabled, ok := d.Get(ReauthenticationEnabledField).(bool)
 	if !ok {
-		return nil, factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", NameField))
+		return nil, factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", ReauthenticationEnabledField))
+	}
+
+	plan, ok := d.Get(PlanField).(string)
+	if !ok {
+		return nil, factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", PlanField))
+	}
+
+	billingCloudAccountID, ok := d.Get(BillingCloudAccountIDField).(string)
+	if !ok {
+		return nil, factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", BillingCloudAccountIDField))
+	}
+
+	marketplace, ok := d.Get(MarketPlaceField).(string)
+	if !ok {
+		return nil, factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", MarketPlaceField))
+	}
+
+	billingModel, ok := d.Get(BillingModelField).(string)
+	if !ok {
+		return nil, factory.Localizer().MustLocalizeError("common.errors.fieldNotFoundInSchema", localize.NewEntry("Field", BillingModelField))
 	}
 
 	payload := kafkamgmtclient.NewKafkaRequestPayload(name)
 
 	payload.SetCloudProvider(cloudProvider)
 	payload.SetRegion(region)
+	payload.SetReauthenticationEnabled(reauthenticationEnabled)
+	payload.SetPlan(plan)
+	payload.SetBillingModel(billingModel)
+
+	// these are optional fields so if they are not set then do not set them
+	// in the api call
+	if billingCloudAccountID != DefaultEmptyField {
+		payload.SetBillingCloudAccountId(billingCloudAccountID)
+	}
+
+	if marketplace != DefaultEmptyField {
+		payload.SetMarketplace(marketplace)
+	}
 
 	return payload, nil
 }
