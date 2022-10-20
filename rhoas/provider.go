@@ -3,6 +3,7 @@ package rhoas
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
@@ -25,7 +26,8 @@ import (
 //go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
 
 const (
-	DefaultAPIURL = "https://api.openshift.com"
+	DefaultAPIURL       = "https://api.openshift.com"
+	LocalDevelopmentEnv = "LOCAL_DEV"
 )
 
 // Provider -
@@ -92,16 +94,32 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		os.Exit(1)
 	}
 
-	// nolint: contextcheck
-	httpClient := authAPI.BuildAuthenticatedHTTPClient(d.Get("offline_token").(string))
+	localDevelopmentServer := os.Getenv(LocalDevelopmentEnv)
+
+	httpClient := &http.Client{}
+	if localDevelopmentServer == "" {
+		// nolint: contextcheck
+		httpClient = authAPI.BuildAuthenticatedHTTPClient(d.Get("offline_token").(string))
+	}
 
 	kafkaClient := kafkamgmt.NewAPIClient(&kafkamgmt.Config{
 		HTTPClient: httpClient,
+		BaseURL:    localDevelopmentServer, // will be ignored if not set
 	})
 
-	config := serviceAccounts.NewConfiguration()
-	config.HTTPClient = httpClient
-	serviceAccountClient := serviceAccounts.NewAPIClient(config)
+	serviceAccountConfig := serviceAccounts.NewConfiguration()
+
+	if localDevelopmentServer != "" {
+		serviceAccountConfig.Servers = serviceAccounts.ServerConfigurations{
+			{
+				URL:         localDevelopmentServer,
+				Description: "Local development",
+			},
+		}
+	}
+
+	serviceAccountConfig.HTTPClient = httpClient
+	serviceAccountClient := serviceAccounts.NewAPIClient(serviceAccountConfig)
 
 	// package both service account client and kafka client together to be used in the provider
 	// these are passed to each action we do and can be use to CRUD kafkas/serviceAccounts
