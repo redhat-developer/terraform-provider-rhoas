@@ -29,6 +29,8 @@ provider "rhoas" {}
 
 resource "rhoas_kafka" "foo" {
   name = "foo"
+  plan = "developer.x1"
+  billing_model = "standard"
 }
 
 output "bootstrap_server_foo" {
