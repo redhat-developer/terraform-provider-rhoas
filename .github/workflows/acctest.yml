@@ -1,0 +1,43 @@
+# This action runs terraform acceptance tests against a mock RHOAS server
+
+name: Terraform acceptance tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  testacc:
+    runs-on: ubuntu-latest
+    container: ubuntu
+    steps:
+      - name: Install make
+        run: apt update && apt install make
+      - name: Install certificates
+        run: apt update && apt install -y ca-certificates && update-ca-certificates
+      - name: Install gcc
+        run: apt update && apt install -y build-essential
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.18
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Build
+        run: make build
+      - name: Wait mock server
+        run: timeout 15 bash -c 'until printf "" 2>>/dev/null >>/dev/tcp/$0/$1; do sleep 1; done' mock-api 8000
+      - name: Test
+        env:
+          LOCAL_DEV: http://mock-api:8000
+          OFFLINE_TOKEN: not needed for the mocked server
+        run: make testacc
+
+    # Service containers to run with `test` job
+    services:
+      mock-api:
+        image: quay.io/rhosak/api-mock
+        ports:
+          - 8000:8000
