@@ -14,7 +14,7 @@ jobs:
     container: ubuntu
     steps:
       - name: Install make
-        run: apt update & apt install make
+        run: apt update && apt install make
       - name: Install Go
         uses: actions/setup-go@v3
         with:
