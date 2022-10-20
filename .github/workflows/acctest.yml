@@ -20,6 +20,8 @@ jobs:
         uses: actions/checkout@v2
       - name: Build
         run: make build
+      - name: Wait mock server
+        run: timeout 15 bash -c 'until printf "" 2>>/dev/null >>/dev/tcp/$0/$1; do sleep 1; done' mock-api 8000
       - name: Test
         env:
           LOCAL_DEV: http://mock-api:8000
