@@ -17,6 +17,8 @@ jobs:
         run: apt update && apt install make
       - name: Install certificates
         run: apt update && apt install -y ca-certificates && update-ca-certificates
+      - name: Install gcc
+        run: apt update && apt install -y build-essential
       - name: Install Go
         uses: actions/setup-go@v3
         with:
