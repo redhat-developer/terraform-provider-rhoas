@@ -11,6 +11,7 @@ on:
 jobs:
   testacc:
     runs-on: ubuntu-latest
+    container: ubuntu
     steps:
       - name: Install Go
         uses: actions/setup-go@v3
