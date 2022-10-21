@@ -20,6 +20,8 @@ resource "rhoas_service_account" "srvcaccnt" {
 
 resource "rhoas_kafka" "instance" {
   name = "instance"
+  plan = "developer.x1"
+  billing_model = "standard"
   acl = [
     {
       principal = rhoas_service_account.srvcaccnt.client_id,

@@ -26,6 +26,8 @@ provider "rhoas" {}
 
 resource "rhoas_kafka" "foo" {
   name = "foo"
+  plan = "developer.x1"
+  billing_model = "standard"
 }
 
 output "bootstrap_server_foo" {
@@ -38,12 +40,17 @@ output "bootstrap_server_foo" {
 
 ### Required
 
+- `billing_model` (String) Billing model for the Kafka instance
 - `name` (String) The name of the Kafka instance
+- `plan` (String) Plan for the kafka instance
 
 ### Optional
 
 - `acl` (List of Map of String) The ACL binding configuration for the kafka instance
+- `billing_cloud_account_id` (String) Billing cloud account id for the Kafka instance
 - `cloud_provider` (String) The cloud provider to use. A list of available cloud providers can be obtained using `data.rhoas_cloud_providers`
+- `marketplace` (String) The marketplace for the kafka instance
+- `reauthentication_enabled` (Boolean) Enable reauthentication for kafka instance
 - `region` (String) The region to use. A list of available regions can be obtained using `data.rhoas_cloud_providers_regions`
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
 
