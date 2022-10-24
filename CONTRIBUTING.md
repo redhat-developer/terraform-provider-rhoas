@@ -56,6 +56,10 @@ export TF_REATTACH_PROVIDERS='{"provider": ... }'
 terraform apply
 ```
 
+## Running Tests
+1. To run the unit tests, run `make test` in the root of the project
+2. To run the acceptance tests, run `make testacc` in the root of the project.
+
 ## Linting
 
 1. Install [golangci-lint](https://golangci-lint.run/)
