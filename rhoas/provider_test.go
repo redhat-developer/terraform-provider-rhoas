@@ -60,8 +60,5 @@ func TestProviderSchema(t *testing.T) {
 	t.Run("attributes", func(t *testing.T) {
 		sut := providerSchema.Provider.Attributes
 		assert.Contains(t, sut, "offline_token")
-		assert.Contains(t, sut, "auth_url")
-		assert.Contains(t, sut, "client_id")
-		assert.Contains(t, sut, "api_url")
 	})
 }
