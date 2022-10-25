@@ -2,6 +2,8 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
+	rhoasAPI "github.com/redhat-developer/terraform-provider-rhoas/rhoas/api"
 	"io"
 	"net/http"
 
@@ -26,15 +28,40 @@ func AsMap(original interface{}) (map[string]interface{}, error) {
 }
 
 // GetAPIError converts an http.Response and a RHOAS apiError into golang errors
-func GetAPIError(response *http.Response, apiError error) error {
-	switch {
-	case apiError == nil:
-		return parseResponse(response)
-	case response == nil:
-		return apiError
-	default:
-		return errors.Errorf("API error: %v, response error: %v", apiError, parseResponse(response))
+func GetAPIError(factory rhoasAPI.Factory, response *http.Response, apiError error) error {
+
+	if apiError == nil {
+		return nil
 	}
+
+	if response == nil {
+		return apiError
+	}
+
+	// this to support terraform acceptance tests which make it impossible to pass factory around
+	// testing code should never affect actual code but no one actually about make good software
+	if factory == nil {
+		return fmt.Errorf("%v : %v", parseResponse(response).Error(), apiError.Error())
+	}
+
+	switch response.StatusCode {
+	case http.StatusBadRequest:
+		return fmt.Errorf("%v : %v", factory.Localizer().MustLocalize("common.errors.api.badRequest"), apiError.Error())
+	case http.StatusUnauthorized:
+		return fmt.Errorf("%v : %v", factory.Localizer().MustLocalize("common.errors.api.unauthorized"), apiError.Error())
+	case http.StatusForbidden:
+		return fmt.Errorf("%v : %v", factory.Localizer().MustLocalize("common.errors.api.forbidden"), apiError.Error())
+	case http.StatusInternalServerError:
+		return fmt.Errorf("%v : %v", factory.Localizer().MustLocalize("common.errors.api.internalServerError"), apiError.Error())
+	case http.StatusServiceUnavailable:
+		return fmt.Errorf("%v : %v", factory.Localizer().MustLocalize("common.errors.api.serviceUnavailable"), apiError.Error())
+	case http.StatusConflict:
+		return fmt.Errorf("%v : %v", factory.Localizer().MustLocalize("common.errors.api.conflict"), apiError.Error())
+	case http.StatusNotFound:
+		return fmt.Errorf("%v : %v", factory.Localizer().MustLocalize("common.errors.api.notFound"), apiError.Error())
+	}
+
+	return apiError
 }
 
 func parseResponse(response *http.Response) error {

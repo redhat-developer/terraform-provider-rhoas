@@ -172,17 +172,9 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		return diag.Errorf("unable to cast %v to rhoasAPI.Factory", m)
 	}
 
-	apiErr, _, err := factory.KafkaMgmt().DeleteKafkaById(ctx, d.Id()).Async(true).Execute()
-	if err != nil && err.Error() == "404 " {
-		// the resource is deleted already
-		d.SetId("")
-		return diags
-	}
-	if err != nil {
-		if apiErr.Reason != "" {
-			return diag.Errorf("%s%s", err.Error(), apiErr.Reason)
-		}
-		return diag.Errorf("%s", err.Error())
+	_, resp, err := factory.KafkaMgmt().DeleteKafkaById(ctx, d.Id()).Async(true).Execute()
+	if apiErr := utils.GetAPIError(factory, resp, err); apiErr != nil {
+		return diag.FromErr(apiErr)
 	}
 
 	deleteStateConf := &resource.StateChangeConf{
@@ -192,18 +184,14 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		},
 		Refresh: func() (interface{}, string, error) {
 			data, resp, err1 := factory.KafkaMgmt().GetKafkaById(ctx, d.Id()).Execute()
-			if err1 != nil {
-				if err1.Error() == "404 Not Found" {
-					return data, "404", nil
-				}
-				if apiErr := utils.GetAPIError(resp, err1); apiErr != nil {
-					return nil, "", apiErr
-				}
+			if apiErr := utils.GetAPIError(factory, resp, err1); apiErr != nil {
+				return nil, "", apiErr
 			}
+
 			return data, *data.Status, nil
 		},
 		Target: []string{
-			"deleted", "404",
+			"deleted", "",
 		},
 		Timeout:                   d.Timeout(schema.TimeoutCreate),
 		MinTimeout:                5 * time.Second,
@@ -233,7 +221,7 @@ func kafkaRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 
 	kafka, resp, err := factory.KafkaMgmt().GetKafkaById(ctx, d.Id()).Execute()
 	if err != nil {
-		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
+		if apiErr := utils.GetAPIError(factory, resp, err); apiErr != nil {
 			return diag.FromErr(apiErr)
 		}
 	}
@@ -261,10 +249,8 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	}
 
 	kr, resp, err := factory.KafkaMgmt().CreateKafka(ctx).Async(true).KafkaRequestPayload(*requestPayload).Execute()
-	if err != nil {
-		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
-			return diag.FromErr(apiErr)
-		}
+	if apiErr := utils.GetAPIError(factory, resp, err); apiErr != nil {
+		return diag.FromErr(apiErr)
 	}
 
 	d.SetId(kr.Id)
@@ -278,10 +264,8 @@ func kafkaCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		},
 		Refresh: func() (interface{}, string, error) {
 			kafka, resp, err1 := factory.KafkaMgmt().GetKafkaById(ctx, kr.Id).Execute()
-			if err1 != nil {
-				if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
-					return nil, "", apiErr
-				}
+			if apiErr := utils.GetAPIError(factory, resp, err1); apiErr != nil {
+				return nil, "", apiErr
 			}
 
 			return kafka, kafka.GetStatus(), nil
@@ -387,9 +371,9 @@ func createACLForKafka(ctx context.Context, factory rhoasAPI.Factory, d *schema.
 			return err
 		}
 
-		_, err = instanceAPI.AclsApi.CreateAcl(ctx).AclBinding(*binding).Execute()
-		if err != nil {
-			return err
+		resp, err := instanceAPI.AclsApi.CreateAcl(ctx).AclBinding(*binding).Execute()
+		if apiErr := utils.GetAPIError(factory, resp, err); apiErr != nil {
+			return apiErr
 		}
 	}
 

@@ -91,10 +91,8 @@ func serviceAccountDelete(ctx context.Context, d *schema.ResourceData, m interfa
 	}
 
 	resp, err := factory.ServiceAccountMgmt().DeleteServiceAccount(ctx, id).Execute()
-	if err != nil {
-		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
-			return diag.FromErr(apiErr)
-		}
+	if apiErr := utils.GetAPIError(factory, resp, err); apiErr != nil {
+		return diag.FromErr(apiErr)
 	}
 
 	d.SetId("")
@@ -114,7 +112,7 @@ func serviceAccountRead(ctx context.Context, d *schema.ResourceData, m interface
 	// service account is created
 	serviceAccount, resp, err := factory.ServiceAccountMgmt().GetServiceAccount(ctx, d.Id()).Execute()
 	if err != nil {
-		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
+		if apiErr := utils.GetAPIError(factory, resp, err); apiErr != nil {
 			return diag.FromErr(apiErr)
 		}
 	}
@@ -143,7 +141,7 @@ func serviceAccountCreate(ctx context.Context, d *schema.ResourceData, m interfa
 
 	serviceAccount, resp, err := factory.ServiceAccountMgmt().CreateServiceAccount(ctx).ServiceAccountCreateRequestData(*request).Execute()
 	if err != nil {
-		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
+		if apiErr := utils.GetAPIError(factory, resp, err); apiErr != nil {
 			return diag.FromErr(apiErr)
 		}
 	}

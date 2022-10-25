@@ -121,7 +121,7 @@ func TestAccRHOASTopic_Error(t *testing.T) {
 func testAccCheckTopicDestroy(s *terraform.State) error {
 	ctx := context.Background()
 	// retrieve the connection established in Provider configuration
-	api, ok := testAccRHOAS.Meta().(rhoasAPI.Factory)
+	factory, ok := testAccRHOAS.Meta().(rhoasAPI.Factory)
 	if !ok {
 		return errors.Errorf("unable to cast %v to rhoasAPI.Factory)", testAccRHOAS.Meta())
 	}
@@ -141,19 +141,14 @@ func testAccCheckTopicDestroy(s *terraform.State) error {
 			return errors.Errorf("name is not set for topic %s", rs.Primary.String())
 		}
 
-		instanceAPI, _, err := api.KafkaAdmin(&ctx, kafkaID)
+		instanceAPI, _, err := factory.KafkaAdmin(&ctx, kafkaID)
 		if err != nil {
 			return err
 		}
 
 		topic, resp, err := instanceAPI.TopicsApi.GetTopic(ctx, name).Execute()
-		if err != nil {
-			if err.Error() == "404 Not Found" {
-				return nil
-			}
-			if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
-				return apiErr
-			}
+		if apiErr := utils.GetAPIError(factory, resp, err); apiErr != nil {
+			return apiErr
 		}
 
 		return errors.Errorf("expected a 404 but found a topic: %v", topic)
@@ -174,7 +169,7 @@ func testAccCheckTopicExists(resource string, topic *kafkainstanceclient.Topic) 
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		api, ok := testAccRHOAS.Meta().(rhoasAPI.Factory)
+		factory, ok := testAccRHOAS.Meta().(rhoasAPI.Factory)
 		if !ok {
 			return errors.Errorf("unable to cast %v to rhoasAPI.Factory)", testAccRHOAS.Meta())
 		}
@@ -188,16 +183,14 @@ func testAccCheckTopicExists(resource string, topic *kafkainstanceclient.Topic) 
 			return errors.Errorf("name is not set for topic %s", rs.Primary.String())
 		}
 
-		instanceAPI, _, err := api.KafkaAdmin(&ctx, kafkaID)
+		instanceAPI, _, err := factory.KafkaAdmin(&ctx, kafkaID)
 		if err != nil {
 			return err
 		}
 
 		gotTopic, resp, err := instanceAPI.TopicsApi.GetTopic(ctx, name).Execute()
-		if err != nil {
-			if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
-				return apiErr
-			}
+		if apiErr := utils.GetAPIError(factory, resp, err); apiErr != nil {
+			return apiErr
 		}
 
 		*topic = gotTopic

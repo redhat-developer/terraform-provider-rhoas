@@ -1,2 +1,23 @@
 [common.errors.fieldNotFoundInSchema]
 one = 'the field "{{.Field}}" could not be found in the schema resource'
+
+[common.errors.api.badRequest]
+one = 'The client request was invalid. One or more request parameters or the request body was rejected'
+
+[common.errors.api.unauthorized]
+one = 'Request authentication missing or invalid'
+
+[common.errors.api.forbidden]
+one = 'User is not authorized to access requested resource or service'
+
+[common.errors.api.internalServerError]
+one = 'Internal server error'
+
+[common.errors.api.serviceUnavailable]
+one = 'Service unavailable'
+
+[common.errors.api.conflict]
+one = 'The resource already exists'
+
+[common.errors.api.notFound]
+one = 'The requested resource or service could not be found'

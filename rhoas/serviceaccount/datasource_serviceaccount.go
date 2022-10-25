@@ -63,10 +63,8 @@ func dataSourceServiceAccountRead(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	serviceAccount, resp, err := factory.ServiceAccountMgmt().GetServiceAccount(ctx, id).Execute()
-	if err != nil {
-		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
-			return diag.FromErr(apiErr)
-		}
+	if apiErr := utils.GetAPIError(factory, resp, err); apiErr != nil {
+		return diag.FromErr(apiErr)
 	}
 
 	err = setResourceDataFromServiceAccountData(d, &serviceAccount)

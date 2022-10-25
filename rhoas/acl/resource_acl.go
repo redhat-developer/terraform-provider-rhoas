@@ -4,6 +4,7 @@ import (
 	"context"
 	kafkainstanceclient "github.com/redhat-developer/app-services-sdk-go/kafkainstance/apiv1/client"
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/localize"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/utils"
 	"math/rand"
 	"strconv"
 	"time"
@@ -117,9 +118,9 @@ func aclCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 		return diag.FromErr(err)
 	}
 
-	_, err = instanceAPI.AclsApi.CreateAcl(ctx).AclBinding(*binding).Execute()
-	if err != nil {
-		return diag.FromErr(err)
+	resp, err := instanceAPI.AclsApi.CreateAcl(ctx).AclBinding(*binding).Execute()
+	if apiErr := utils.GetAPIError(factory, resp, err); apiErr != nil {
+		return diag.FromErr(apiErr)
 	}
 
 	// acls have no id so we need to create a new random one for it

@@ -175,7 +175,7 @@ data "rhoas_service_account" "test" {
 // testAccCheckServiceAccountDestroy verifies the service account has been destroyed
 func testAccCheckServiceAccountDestroy(s *terraform.State) error {
 	// retrieve the connection established in Provider configuration
-	api, ok := testAccRHOAS.Meta().(rhoasAPI.Factory)
+	factory, ok := testAccRHOAS.Meta().(rhoasAPI.Factory)
 	if !ok {
 		return errors.Errorf("unable to cast %v to rhoasAPI.Factory)", testAccRHOAS.Meta())
 	}
@@ -187,14 +187,9 @@ func testAccCheckServiceAccountDestroy(s *terraform.State) error {
 		}
 
 		// Retrieve the service account struct by referencing it's state ID for API lookup
-		serviceAccount, resp, err := api.ServiceAccountMgmt().GetServiceAccount(context.Background(), rs.Primary.ID).Execute()
-		if err != nil {
-			if err.Error() == "404 Not Found" {
-				return nil
-			}
-			if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
-				return apiErr
-			}
+		serviceAccount, resp, err := factory.ServiceAccountMgmt().GetServiceAccount(context.Background(), rs.Primary.ID).Execute()
+		if apiErr := utils.GetAPIError(factory, resp, err); apiErr != nil {
+			return apiErr
 		}
 
 		return errors.Errorf("expected a 404 but found a service account: %v", serviceAccount)
@@ -220,10 +215,8 @@ func testAccCheckServiceAccountExists(serviceAccount *saclient.ServiceAccountDat
 			return errors.Errorf("unable to cast %v to rhoasAPI.Factory)", testAccRHOAS.Meta())
 		}
 		gotServiceAccount, resp, err := api.ServiceAccountMgmt().GetServiceAccount(context.Background(), rs.Primary.ID).Execute()
-		if err != nil {
-			if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
-				return apiErr
-			}
+		if apiErr := utils.GetAPIError(nil, resp, err); apiErr != nil {
+			return apiErr
 		}
 
 		*serviceAccount = gotServiceAccount
