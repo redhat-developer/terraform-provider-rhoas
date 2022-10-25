@@ -41,27 +41,32 @@ func GetAPIError(factory rhoasAPI.Factory, response *http.Response, apiError err
 	// this to support terraform acceptance tests which make it impossible to pass factory around
 	// testing code should never affect actual code but no one actually about make good software
 	if factory == nil {
+		//nolint
 		return fmt.Errorf("%v : %v", parseResponse(response).Error(), apiError.Error())
 	}
 
 	switch response.StatusCode {
 	case http.StatusBadRequest:
-		return fmt.Errorf("%v : %v", factory.Localizer().MustLocalize("common.errors.api.badRequest"), apiError.Error())
+		return fmt.Errorf(buildErrorString(factory.Localizer().MustLocalize("common.errors.api.badRequest"), response, apiError))
 	case http.StatusUnauthorized:
-		return fmt.Errorf("%v : %v", factory.Localizer().MustLocalize("common.errors.api.unauthorized"), apiError.Error())
+		return fmt.Errorf(buildErrorString(factory.Localizer().MustLocalize("common.errors.api.unauthorized"), response, apiError))
 	case http.StatusForbidden:
-		return fmt.Errorf("%v : %v", factory.Localizer().MustLocalize("common.errors.api.forbidden"), apiError.Error())
+		return fmt.Errorf(buildErrorString(factory.Localizer().MustLocalize("common.errors.api.forbidden"), response, apiError))
 	case http.StatusInternalServerError:
-		return fmt.Errorf("%v : %v", factory.Localizer().MustLocalize("common.errors.api.internalServerError"), apiError.Error())
+		return fmt.Errorf(buildErrorString(factory.Localizer().MustLocalize("common.errors.api.internalServerError"), response, apiError))
 	case http.StatusServiceUnavailable:
-		return fmt.Errorf("%v : %v", factory.Localizer().MustLocalize("common.errors.api.serviceUnavailable"), apiError.Error())
+		return fmt.Errorf(buildErrorString(factory.Localizer().MustLocalize("common.errors.api.serviceUnavailable"), response, apiError))
 	case http.StatusConflict:
-		return fmt.Errorf("%v : %v", factory.Localizer().MustLocalize("common.errors.api.conflict"), apiError.Error())
+		return fmt.Errorf(buildErrorString(factory.Localizer().MustLocalize("common.errors.api.conflict"), response, apiError))
 	case http.StatusNotFound:
-		return fmt.Errorf("%v : %v", factory.Localizer().MustLocalize("common.errors.api.notFound"), apiError.Error())
+		return fmt.Errorf(buildErrorString(factory.Localizer().MustLocalize("common.errors.api.notFound"), response, apiError))
 	}
 
 	return apiError
+}
+
+func buildErrorString(message string, response *http.Response, apiError error) string {
+	return fmt.Sprintf("%v :: %v :: %v :: %v", message, apiError.Error(), response.Request.URL.Host+response.Request.URL.Path, response.Request.Method)
 }
 
 func parseResponse(response *http.Response) error {

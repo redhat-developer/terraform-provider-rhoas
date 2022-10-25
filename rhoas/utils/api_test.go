@@ -57,14 +57,3 @@ func TestGetAPIError(t *testing.T) {
 		assert.Equal(t, testAPIError, err, "GetAPIError should return the same error passed in")
 	})
 }
-
-type erroringBuffer struct {
-}
-
-func (mb erroringBuffer) Close() error {
-	return nil
-}
-
-func (mb erroringBuffer) Read(p []byte) (n int, err error) {
-	return 0, errors.New("error reading body")
-}

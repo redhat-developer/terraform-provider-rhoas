@@ -52,6 +52,7 @@ func (f *DefaultFactory) ServiceAccountMgmt() serviceAccounts.ServiceAccountsApi
 func (f *DefaultFactory) KafkaAdmin(ctx *context.Context, instanceID string) (*kafkainstanceclient.APIClient, *kafkamgmtclient.KafkaRequest, error) {
 	kafkaAPI := f.KafkaMgmt()
 
+	//nolint
 	kafkaInstance, resp, err := kafkaAPI.GetKafkaById(*ctx, instanceID).Execute()
 	if apiErr := utils.GetAPIError(f, resp, err); apiErr != nil {
 		return nil, nil, apiErr
