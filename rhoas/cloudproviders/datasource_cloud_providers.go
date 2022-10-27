@@ -61,7 +61,7 @@ func dataSourceCloudProvidersRead(ctx context.Context, d *schema.ResourceData, m
 
 	data, resp, err := factory.KafkaMgmt().GetCloudProviders(ctx).Execute()
 	if err != nil {
-		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
+		if apiErr := utils.GetAPIError(factory, resp, err); apiErr != nil {
 			return diag.FromErr(apiErr)
 		}
 	}

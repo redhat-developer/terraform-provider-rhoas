@@ -113,10 +113,8 @@ func dataSourceKafkasRead(ctx context.Context, d *schema.ResourceData, m interfa
 	}
 
 	kafkas, resp, err := factory.KafkaMgmt().GetKafkas(ctx).Execute()
-	if err != nil {
-		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
-			return diag.FromErr(apiErr)
-		}
+	if apiErr := utils.GetAPIError(factory, resp, err); apiErr != nil {
+		return diag.FromErr(apiErr)
 	}
 
 	if err := d.Set("kafkas", flattenKafkas(kafkas.Items)); err != nil {

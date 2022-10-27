@@ -2,8 +2,7 @@ package serviceaccount
 
 import (
 	"context"
-	"io"
-	"log"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/utils"
 	"strconv"
 	"time"
 
@@ -73,12 +72,8 @@ func dataSourceKafkasRead(ctx context.Context, d *schema.ResourceData, m interfa
 	}
 
 	data, resp, err := factory.ServiceAccountMgmt().GetServiceAccounts(ctx).Execute()
-	if err != nil {
-		bodyBytes, ioErr := io.ReadAll(resp.Body)
-		if ioErr != nil {
-			log.Fatal(ioErr)
-		}
-		return diag.Errorf("%s%s", err.Error(), string(bodyBytes))
+	if apiErr := utils.GetAPIError(factory, resp, err); apiErr != nil {
+		return diag.FromErr(apiErr)
 	}
 
 	if err := d.Set("service_accounts", flattenServiceAccountData(data)); err != nil {

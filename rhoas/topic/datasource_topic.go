@@ -58,11 +58,8 @@ func dataSourceTopicRead(ctx context.Context, d *schema.ResourceData, m interfac
 	}
 
 	topic, resp, err := instanceAPI.TopicsApi.GetTopic(ctx, name).Execute()
-	if err != nil {
-		err2 := utils.GetAPIError(resp, err)
-		if err2 != nil {
-			return diag.FromErr(err2)
-		}
+	if apiErr := utils.GetAPIError(factory, resp, err); apiErr != nil {
+		return diag.FromErr(apiErr)
 	}
 
 	err = setResourceDataFromTopic(d, &topic)

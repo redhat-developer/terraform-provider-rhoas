@@ -9,6 +9,7 @@ import (
 	kafkamgmtv1errors "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1/error"
 	serviceAccounts "github.com/redhat-developer/app-services-sdk-go/serviceaccountmgmt/apiv1/client"
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/localize"
+	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/utils"
 	"net/http"
 )
 
@@ -51,9 +52,10 @@ func (f *DefaultFactory) ServiceAccountMgmt() serviceAccounts.ServiceAccountsApi
 func (f *DefaultFactory) KafkaAdmin(ctx *context.Context, instanceID string) (*kafkainstanceclient.APIClient, *kafkamgmtclient.KafkaRequest, error) {
 	kafkaAPI := f.KafkaMgmt()
 
+	//nolint
 	kafkaInstance, resp, err := kafkaAPI.GetKafkaById(*ctx, instanceID).Execute()
-	if resp != nil {
-		defer resp.Body.Close()
+	if apiErr := utils.GetAPIError(f, resp, err); apiErr != nil {
+		return nil, nil, apiErr
 	}
 
 	if kafkamgmtv1errors.IsAPIError(err, kafkamgmtv1errors.ERROR_7) {

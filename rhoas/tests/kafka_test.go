@@ -112,7 +112,7 @@ func TestAccRHOASKafka_Error(t *testing.T) {
 // testAccCheckKafkaDestroy verifies the Kafka cluster has been destroyed
 func testAccCheckKafkaDestroy(s *terraform.State) error {
 	// retrieve the connection established in Provider configuration
-	api, ok := testAccRHOAS.Meta().(rhoasAPI.Factory)
+	factory, ok := testAccRHOAS.Meta().(rhoasAPI.Factory)
 	if !ok {
 		return errors.Errorf("unable to cast %v to rhoasAPI.Factory)", testAccRHOAS.Meta())
 	}
@@ -124,14 +124,9 @@ func testAccCheckKafkaDestroy(s *terraform.State) error {
 		}
 
 		// Retrieve the kafka struct by referencing it's state ID for API lookup
-		kafka, resp, err := api.KafkaMgmt().GetKafkaById(context.Background(), rs.Primary.ID).Execute()
-		if err != nil {
-			if err.Error() == "404 Not Found" {
-				return nil
-			}
-			if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
-				return apiErr
-			}
+		kafka, resp, err := factory.KafkaMgmt().GetKafkaById(context.Background(), rs.Primary.ID).Execute()
+		if apiErr := utils.GetAPIError(factory, resp, err); apiErr != nil {
+			return apiErr
 		}
 
 		return errors.Errorf("expected a 404 but found a kafka instance: %v", kafka)
@@ -150,13 +145,13 @@ func testAccCheckKafkaExists(resource string, kafka *kafkamgmtclient.KafkaReques
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		api, ok := testAccRHOAS.Meta().(rhoasAPI.Factory)
+		factory, ok := testAccRHOAS.Meta().(rhoasAPI.Factory)
 		if !ok {
 			return errors.Errorf("unable to cast %v to rhoasAPI.Factory)", testAccRHOAS.Meta())
 		}
-		gotKafka, resp, err := api.KafkaMgmt().GetKafkaById(context.Background(), rs.Primary.ID).Execute()
+		gotKafka, resp, err := factory.KafkaMgmt().GetKafkaById(context.Background(), rs.Primary.ID).Execute()
 		if err != nil {
-			if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
+			if apiErr := utils.GetAPIError(factory, resp, err); apiErr != nil {
 				return apiErr
 			}
 		}

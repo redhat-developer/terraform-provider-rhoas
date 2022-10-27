@@ -76,10 +76,8 @@ func topicDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	}
 
 	resp, err := instanceAPI.TopicsApi.DeleteTopic(ctx, topicName).Execute()
-	if err != nil {
-		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
-			return diag.FromErr(apiErr)
-		}
+	if apiErr := utils.GetAPIError(factory, resp, err); apiErr != nil {
+		return diag.FromErr(apiErr)
 	}
 
 	d.SetId("")
@@ -111,10 +109,8 @@ func topicRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.
 	}
 
 	topic, resp, err := instanceAPI.TopicsApi.GetTopic(ctx, topicName).Execute()
-	if err != nil {
-		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
-			return diag.FromErr(apiErr)
-		}
+	if apiErr := utils.GetAPIError(factory, resp, err); apiErr != nil {
+		return diag.FromErr(apiErr)
 	}
 
 	err = setResourceDataFromTopic(d, &topic)
@@ -152,10 +148,8 @@ func topicCreate(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 	}
 
 	topic, resp, err := topicRequest.Execute()
-	if err != nil {
-		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
-			return diag.FromErr(apiErr)
-		}
+	if apiErr := utils.GetAPIError(factory, resp, err); apiErr != nil {
+		return diag.FromErr(apiErr)
 	}
 
 	err = setResourceDataFromTopic(d, &topic)

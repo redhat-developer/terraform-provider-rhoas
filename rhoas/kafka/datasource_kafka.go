@@ -94,10 +94,8 @@ func dataSourceKafkaRead(ctx context.Context, d *schema.ResourceData, m interfac
 	}
 
 	kafka, resp, err := factory.KafkaMgmt().GetKafkaById(ctx, id).Execute()
-	if err != nil {
-		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
-			return diag.FromErr(apiErr)
-		}
+	if apiErr := utils.GetAPIError(factory, resp, err); apiErr != nil {
+		return diag.FromErr(apiErr)
 	}
 
 	err = setResourceDataFromKafkaData(d, &kafka)

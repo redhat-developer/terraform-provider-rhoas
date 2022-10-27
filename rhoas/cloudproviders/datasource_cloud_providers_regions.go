@@ -67,10 +67,8 @@ func dataSourceCloudProviderRegionsRead(ctx context.Context, d *schema.ResourceD
 	}
 
 	data, resp, err := factory.KafkaMgmt().GetCloudProviderRegions(ctx, id).Execute()
-	if err != nil {
-		if apiErr := utils.GetAPIError(resp, err); apiErr != nil {
-			return diag.FromErr(apiErr)
-		}
+	if apiErr := utils.GetAPIError(factory, resp, err); apiErr != nil {
+		return diag.FromErr(apiErr)
 	}
 
 	if err := d.Set("regions", flattenRegions(data.Items)); err != nil {
