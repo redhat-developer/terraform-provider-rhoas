@@ -224,7 +224,7 @@ resource "rhoas_topic" "%s" {
   partitions = %d
   kafka_id   = rhoas_kafka.test_kafka_create_topic.id
 }
-`, kafkaName, PlanInput, BillingModelInput, id, name, partitions)
+`, kafkaName, planInput, billingModelInput, id, name, partitions)
 }
 
 func testAccTopicDestroyedBasic() string {
@@ -234,7 +234,7 @@ resource "rhoas_kafka" "test_kafka_create_topic" {
   plan = "%s"
   billing_model = "%s"
 }
-`, kafkaName, PlanInput, BillingModelInput)
+`, kafkaName, planInput, billingModelInput)
 }
 
 func Test_testAccTopicBasic(t *testing.T) {
@@ -251,7 +251,7 @@ resource "rhoas_topic" "test_id" {
   partitions = 1
   kafka_id   = rhoas_kafka.test_kafka_create_topic.id
 }
-`, kafkaName, PlanInput, BillingModelInput),
+`, kafkaName, planInput, billingModelInput),
 		testAccTopicBasic("test_id", "test-name", 1),
 	)
 }
