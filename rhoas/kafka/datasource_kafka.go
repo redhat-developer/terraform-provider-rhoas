@@ -15,6 +15,11 @@ func DataSourceKafka(localizer localize.Localizer) *schema.Resource {
 		Description: "`rhoas_kafka` provides a Kafka accessible to your organization in Red Hat OpenShift Streams for Apache Kafka.",
 		ReadContext: dataSourceKafkaRead,
 		Schema: map[string]*schema.Schema{
+			NameField: {
+				Description: localizer.MustLocalize("kafka.resource.field.description.name"),
+				Type:        schema.TypeString,
+				Computed:    true,
+			},
 			CloudProviderField: {
 				Description: localizer.MustLocalize("kafka.resource.field.description.cloudProvider"),
 				Type:        schema.TypeString,
@@ -25,8 +30,28 @@ func DataSourceKafka(localizer localize.Localizer) *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
-			NameField: {
-				Description: localizer.MustLocalize("kafka.resource.field.description.name"),
+			ReauthenticationEnabledField: {
+				Description: localizer.MustLocalize("kafka.resource.field.description.reauthenticationEnabled"),
+				Type:        schema.TypeBool,
+				Computed:    true,
+			},
+			PlanField: {
+				Description: localizer.MustLocalize("kafka.resource.field.description.plan"),
+				Type:        schema.TypeString,
+				Computed:    true,
+			},
+			BillingCloudAccountIDField: {
+				Description: localizer.MustLocalize("kafka.resource.field.description.billingCloudAccountId"),
+				Type:        schema.TypeString,
+				Computed:    true,
+			},
+			MarketPlaceField: {
+				Description: localizer.MustLocalize("kafka.resource.field.description.marketplace"),
+				Type:        schema.TypeString,
+				Computed:    true,
+			},
+			BillingModelField: {
+				Description: localizer.MustLocalize("kafka.resource.field.description.billingModel"),
 				Type:        schema.TypeString,
 				Computed:    true,
 			},
