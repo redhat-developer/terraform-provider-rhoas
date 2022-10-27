@@ -21,13 +21,18 @@ description: |-
 
 ### Read-Only
 
+- `billing_cloud_account_id` (String) Billing cloud account id for the Kafka instance
+- `billing_model` (String) Billing model for the Kafka instance
 - `bootstrap_server_host` (String) The bootstrap server (host:port)
 - `cloud_provider` (String) The cloud provider to use. A list of available cloud providers can be obtained using `data.rhoas_cloud_providers`
 - `created_at` (String) The RFC3339 date and time at which the Kafka instance was created
 - `href` (String) The path to the Kafka instance in the REST API
 - `kind` (String) The kind of resource in the API
+- `marketplace` (String) The marketplace for the kafka instance
 - `name` (String) The name of the Kafka instance
 - `owner` (String) The username of the Red Hat account that owns the Kafka instance
+- `plan` (String) Plan for the kafka instance
+- `reauthentication_enabled` (Boolean) Enable reauthentication for kafka instance
 - `region` (String) The region to use. A list of available regions can be obtained using `data.rhoas_cloud_providers_regions`
 - `status` (String) The status of the Kafka instance
 - `updated_at` (String) The RFC3339 date and time at which the Kafka instance was last updated
