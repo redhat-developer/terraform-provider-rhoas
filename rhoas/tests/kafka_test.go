@@ -17,8 +17,10 @@ import (
 )
 
 const (
-	kafkaID   = "test_kafka"
-	kafkaPath = "rhoas_kafka.test_kafka"
+	kafkaID           = "test_kafka"
+	kafkaPath         = "rhoas_kafka.test_kafka"
+	PlanInput         = "developer.x1"
+	BillingModelInput = "standard"
 )
 
 // TestAccRHOASKafka_Basic checks that this provider is able to spin up a
@@ -187,8 +189,10 @@ func testAccKafkaBasic(id, name string) string {
 	return fmt.Sprintf(`
 resource "rhoas_kafka" "%s" {
   name = "%s"
+  plan = "%s"
+  billing_model = "%s"
 }
-`, id, name)
+`, id, name, PlanInput, BillingModelInput)
 }
 
 func testAccKafkaWithCloudProvider(id, name, cloudProvider string) string {
@@ -196,17 +200,21 @@ func testAccKafkaWithCloudProvider(id, name, cloudProvider string) string {
 resource "rhoas_kafka" "%s" {
   name = "%s"
   cloud_provider = "%s"
+  plan = "%s"
+  billing_model = "%s"
 }
-`, id, name, cloudProvider)
+`, id, name, cloudProvider, PlanInput, BillingModelInput)
 }
 
 func Test_testAccKafkaBasic(t *testing.T) {
 	assert.Equal(
-		t, `
+		t, fmt.Sprintf(`
 resource "rhoas_kafka" "test_id" {
   name = "test_name"
+  plan = "%s"
+  billing_model = "%s"
 }
-`,
+`, PlanInput, BillingModelInput),
 		testAccKafkaBasic("test_id", "test_name"),
 	)
 }

@@ -222,6 +222,8 @@ func testAccTopicBasic(id, name string, partitions int) string {
 	return fmt.Sprintf(`
 resource "rhoas_kafka" "test_kafka_create_topic" {
   name = "%s"
+  plan = "%s"
+  billing_model = "%s"
 }
 
 resource "rhoas_topic" "%s" {
@@ -229,15 +231,17 @@ resource "rhoas_topic" "%s" {
   partitions = %d
   kafka_id   = rhoas_kafka.test_kafka_create_topic.id
 }
-`, kafkaName, id, name, partitions)
+`, kafkaName, PlanInput, BillingModelInput, id, name, partitions)
 }
 
 func testAccTopicDestroyedBasic() string {
 	return fmt.Sprintf(`
 resource "rhoas_kafka" "test_kafka_create_topic" {
   name = "%s"
+  plan = "%s"
+  billing_model = "%s"
 }
-`, kafkaName)
+`, kafkaName, PlanInput, BillingModelInput)
 }
 
 func Test_testAccTopicBasic(t *testing.T) {
@@ -245,6 +249,8 @@ func Test_testAccTopicBasic(t *testing.T) {
 		t, fmt.Sprintf(`
 resource "rhoas_kafka" "test_kafka_create_topic" {
   name = "%s"
+  plan = "%s"
+  billing_model = "%s"
 }
 
 resource "rhoas_topic" "test_id" {
@@ -252,7 +258,7 @@ resource "rhoas_topic" "test_id" {
   partitions = 1
   kafka_id   = rhoas_kafka.test_kafka_create_topic.id
 }
-`, kafkaName),
+`, kafkaName, PlanInput, BillingModelInput),
 		testAccTopicBasic("test_id", "test-name", 1),
 	)
 }
