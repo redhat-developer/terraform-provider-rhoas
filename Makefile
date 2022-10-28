@@ -66,6 +66,13 @@ test:
 testacc:
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m
 
+.PHONY: lint-lang
+lint-lang: ## Lint i18n files
+ifndef I18N_LINTER_DEF # check if the linter is installed, install it if not
+	go install github.com/redhat-developer/app-services-go-linter/cmd/app-services-go-linter@latest
+endif
+	app-services-go-linter -path ./rhoas/localize/locales ./...
+
 .PHONY: lint
 lint:
 	golangci-lint run
