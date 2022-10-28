@@ -95,6 +95,12 @@ rhoas login --api-gateway=http://localhost:8000
 2. To run the acceptance tests, run `make testacc` in the root of the project.
 
 ## Linting
-
+There are two options for linting in the provider the first is the standard go linter
+which will lint all go code. This is also run as a github action when making a pull request
+so if you need to fix the linting on your pr follow the steps below.
 1. Install [golangci-lint](https://golangci-lint.run/)
 2. Run `make lint`
+
+We also lint all internationalization files and uses in the provider, this is done by the commands
+below and this is also run as github action.
+1. Run `make lint-lang`
