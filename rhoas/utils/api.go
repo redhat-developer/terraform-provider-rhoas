@@ -3,9 +3,10 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
-	rhoasAPI "github.com/redhat-developer/terraform-provider-rhoas/rhoas/api"
 	"io"
 	"net/http"
+
+	rhoasAPI "github.com/redhat-developer/terraform-provider-rhoas/rhoas/api"
 
 	"github.com/pkg/errors"
 )
@@ -80,4 +81,9 @@ func parseResponse(response *http.Response) error {
 	}
 
 	return errors.New(string(bodyBytes))
+}
+
+// CheckNotFound checks whether the response status code is not found
+func CheckNotFound(response *http.Response) bool {
+	return response.StatusCode == http.StatusNotFound
 }

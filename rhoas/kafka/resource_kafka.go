@@ -2,7 +2,6 @@ package kafka
 
 import (
 	"context"
-	"net/http"
 	"strings"
 	"time"
 
@@ -186,7 +185,7 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		},
 		Refresh: func() (interface{}, string, error) {
 			data, resp, err1 := factory.KafkaMgmt().GetKafkaById(ctx, d.Id()).Execute()
-			if resp.StatusCode == http.StatusNotFound {
+			if utils.CheckNotFound(resp) {
 				return data, "deleted", nil
 			}
 			if apiErr := utils.GetAPIError(factory, resp, err1); apiErr != nil {

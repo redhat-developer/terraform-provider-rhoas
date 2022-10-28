@@ -1,9 +1,11 @@
 package utils_test
 
 import (
+	"net/http"
+	"testing"
+
 	factories "github.com/redhat-developer/terraform-provider-rhoas/rhoas/factory"
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/localize/goi18n"
-	"testing"
 
 	"github.com/pkg/errors"
 
@@ -56,4 +58,15 @@ func TestGetAPIError(t *testing.T) {
 		err := utils.GetAPIError(factory, nil, testAPIError)
 		assert.Equal(t, testAPIError, err, "GetAPIError should return the same error passed in")
 	})
+}
+
+func TestCheckNotFound(t *testing.T) {
+	var notFoundResponse = http.Response{
+		StatusCode: http.StatusNotFound,
+	}
+	var internalErrorResponse = http.Response{
+		StatusCode: http.StatusInternalServerError,
+	}
+	assert.True(t, utils.CheckNotFound(&notFoundResponse))
+	assert.False(t, utils.CheckNotFound(&internalErrorResponse))
 }
