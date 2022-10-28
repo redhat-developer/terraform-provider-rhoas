@@ -2,11 +2,12 @@ package kafka
 
 import (
 	"context"
+	"strings"
+	"time"
+
 	kafkainstanceclient "github.com/redhat-developer/app-services-sdk-go/kafkainstance/apiv1/client"
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/acl"
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/localize"
-	"strings"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -184,6 +185,9 @@ func kafkaDelete(ctx context.Context, d *schema.ResourceData, m interface{}) dia
 		},
 		Refresh: func() (interface{}, string, error) {
 			data, resp, err1 := factory.KafkaMgmt().GetKafkaById(ctx, d.Id()).Execute()
+			if utils.CheckNotFound(resp) {
+				return data, "deleted", nil
+			}
 			if apiErr := utils.GetAPIError(factory, resp, err1); apiErr != nil {
 				return nil, "", apiErr
 			}

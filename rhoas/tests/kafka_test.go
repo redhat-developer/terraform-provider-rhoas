@@ -127,6 +127,9 @@ func testAccCheckKafkaDestroy(s *terraform.State) error {
 
 		// Retrieve the kafka struct by referencing it's state ID for API lookup
 		kafka, resp, err := factory.KafkaMgmt().GetKafkaById(context.Background(), rs.Primary.ID).Execute()
+		if utils.CheckNotFound(resp) {
+			return nil
+		}
 		if apiErr := utils.GetAPIError(factory, resp, err); apiErr != nil {
 			return apiErr
 		}

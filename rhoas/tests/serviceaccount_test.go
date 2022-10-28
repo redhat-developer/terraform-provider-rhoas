@@ -188,6 +188,9 @@ func testAccCheckServiceAccountDestroy(s *terraform.State) error {
 
 		// Retrieve the service account struct by referencing it's state ID for API lookup
 		serviceAccount, resp, err := factory.ServiceAccountMgmt().GetServiceAccount(context.Background(), rs.Primary.ID).Execute()
+		if utils.CheckNotFound(resp) {
+			return nil
+		}
 		if apiErr := utils.GetAPIError(factory, resp, err); apiErr != nil {
 			return apiErr
 		}
