@@ -47,4 +47,4 @@ output "bootstrap_server_foo" {
 
 ## Source code
 
-https://github.com/pmuir/terraform-provider-rhoas
+https://github.com/redhat-developer/terraform-provider-rhoas
