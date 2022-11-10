@@ -20,7 +20,7 @@ terraform {
   required_providers {
     rhoas = {
       source  = "registry.terraform.io/redhat-developer/rhoas"
-      version = "0.1"
+      version = "0.3"
     }
   }
 }
@@ -47,4 +47,4 @@ output "bootstrap_server_foo" {
 
 ## Source code
 
-https://github.com/pmuir/terraform-provider-rhoas
+https://github.com/redhat-developer/terraform-provider-rhoas
