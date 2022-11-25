@@ -14,7 +14,6 @@ import (
 	authAPI "github.com/redhat-developer/app-services-sdk-go/auth/apiv1"
 	kafkamgmt "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1"
 	serviceAccounts "github.com/redhat-developer/app-services-sdk-go/serviceaccountmgmt/apiv1/client"
-	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/cloudproviders"
 	factories "github.com/redhat-developer/terraform-provider-rhoas/rhoas/factory"
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/kafka"
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/serviceaccount"
@@ -53,13 +52,11 @@ func Provider() *schema.Provider {
 			"rhoas_acl":             acl.ResourceACL(localizer),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"rhoas_kafkas":                 kafka.DataSourceKafkas(localizer),
-			"rhoas_service_accounts":       serviceaccount.DataSourceServiceAccounts(localizer),
-			"rhoas_kafka":                  kafka.DataSourceKafka(localizer),
-			"rhoas_topic":                  topic.DataSourceTopic(localizer),
-			"rhoas_service_account":        serviceaccount.DataSourceServiceAccount(localizer),
-			"rhoas_cloud_providers":        cloudproviders.DataSourceCloudProviders(localizer),
-			"rhoas_cloud_provider_regions": cloudproviders.DataSourceCloudProviderRegions(localizer),
+			"rhoas_kafkas":           kafka.DataSourceKafkas(localizer),
+			"rhoas_service_accounts": serviceaccount.DataSourceServiceAccounts(localizer),
+			"rhoas_kafka":            kafka.DataSourceKafka(localizer),
+			"rhoas_topic":            topic.DataSourceTopic(localizer),
+			"rhoas_service_account":  serviceaccount.DataSourceServiceAccount(localizer),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}
