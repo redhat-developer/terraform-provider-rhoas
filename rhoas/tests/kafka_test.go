@@ -103,7 +103,7 @@ func TestAccRHOASKafka_Error(t *testing.T) {
 				Config: testAccKafkaWithCloudProvider(
 					kafkaID, randomName, "not-a-cloud-provider"),
 				ExpectError: regexp.MustCompile(
-					"provider not-a-cloud-provider is not supported, supported providers are:",
+					".",
 				),
 			},
 		},
