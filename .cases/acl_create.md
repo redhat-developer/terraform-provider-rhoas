@@ -14,7 +14,7 @@ resource "resource_acl" "acl" {
   resource_name = "my-topic"
   pattern_type = "LITERAL"
   principal = rhoas_service_account.srvcaccnt.client_id
-  operation = "ALL"
-  permission = "ALLOW"  
+  operation_type = "ALL"
+  permission_type = "ALLOW"  
 }
 ```

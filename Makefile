@@ -3,7 +3,7 @@ HOSTNAME=registry.terraform.io
 NAMESPACE=redhat-developer
 NAME=rhoas
 BINARY=terraform-provider-rhoas
-VERSION ?= 0.1
+VERSION ?= 0.4
 
 
 ifeq ($(OS),Windows_NT)
