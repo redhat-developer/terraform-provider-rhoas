@@ -108,7 +108,7 @@ func TestAccRHOASServiceAccount_Error(t *testing.T) {
 				Config: testAccServiceAccountBasic(
 					serviceAccountID, ""),
 				ExpectError: regexp.MustCompile(
-					"Request failed field validation",
+					"The client request was invalid.",
 				),
 			},
 		},
