@@ -109,7 +109,7 @@ func TestAccRHOASTopic_Error(t *testing.T) {
 				Config: testAccTopicBasic(
 					topicID, "", topicPartitions),
 				ExpectError: regexp.MustCompile(
-					"name must not be blank",
+					"The client request was invalid.",
 				),
 			},
 		},
