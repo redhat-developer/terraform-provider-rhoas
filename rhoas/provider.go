@@ -2,6 +2,7 @@ package rhoas
 
 import (
 	"context"
+	kafkamgmt "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1"
 	"net/http"
 	"os"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	authAPI "github.com/redhat-developer/app-services-sdk-go/auth/apiv1"
-	kafkamgmt "github.com/redhat-developer/app-services-sdk-go/kafkamgmt/apiv1"
 	serviceAccounts "github.com/redhat-developer/app-services-sdk-go/serviceaccountmgmt/apiv1/client"
 	factories "github.com/redhat-developer/terraform-provider-rhoas/rhoas/factory"
 	"github.com/redhat-developer/terraform-provider-rhoas/rhoas/kafka"
@@ -24,8 +24,17 @@ import (
 //go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
 
 const (
-	DefaultAPIURL       = "https://api.openshift.com"
-	LocalDevelopmentEnv = "LOCAL_DEV"
+	mockAlias       = "mock"
+	prodAlias       = "prod"
+	stageAlias      = "stage"
+	offlineTokenENV = "OFFLINE_TOKEN"
+)
+
+var (
+	ProductionAPIURL  = "https://api.openshift.com"
+	StagingAPIURL     = "https://api.stage.openshift.com"
+	ProductionAuthURL = "https://sso.redhat.com/auth/realms/redhat-external"
+	StagingAuthURL    = "https://sso.stage.redhat.com/auth/realms/redhat-external"
 )
 
 // Provider -
@@ -41,7 +50,7 @@ func Provider() *schema.Provider {
 			"offline_token": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("OFFLINE_TOKEN", nil),
+				DefaultFunc: schema.EnvDefaultFunc(offlineTokenENV, nil),
 				Description: "The offline token is a refresh token with no expiry and can be used by non-interactive processes to provide an access token for Red Hat OpenShift Application Services. The offline token can be obtained from [https://cloud.redhat.com/openshift/token](https://cloud.redhat.com/openshift/token). As the offline token is a sensitive value that varies between environments it is best specified using the `OFFLINE_TOKEN` environment variable.",
 			},
 		},
@@ -72,26 +81,49 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		os.Exit(1)
 	}
 
-	localDevelopmentServer := os.Getenv(LocalDevelopmentEnv)
+	baseURLsForAlias := map[string]string{
+		mockAlias:  "http://localhost:8000",
+		stageAlias: StagingAPIURL,
+		prodAlias:  ProductionAPIURL,
+	}
+
+	authURLsForAlias := map[string]string{
+		mockAlias:  "",
+		stageAlias: StagingAuthURL, // NOTE: stage uses the production auth URL also
+		prodAlias:  ProductionAuthURL,
+	}
+
+	apiAlias := os.Getenv("API")
+	if apiAlias == "" {
+		apiAlias = prodAlias
+	}
+
+	var offlineToken string
+
+	if token, ok := d.Get("offline_token").(string); ok {
+		offlineToken = token
+	} else {
+		offlineToken = os.Getenv(offlineTokenENV)
+	}
 
 	httpClient := &http.Client{}
-	if localDevelopmentServer == "" {
+	if apiAlias != "mock" {
 		// nolint: contextcheck
-		httpClient = authAPI.BuildAuthenticatedHTTPClient(d.Get("offline_token").(string))
+		httpClient = authAPI.BuildAuthenticatedHTTPClientCustom(offlineToken, authAPI.DefaultClientID, authURLsForAlias[prodAlias])
 	}
 
 	kafkaClient := kafkamgmt.NewAPIClient(&kafkamgmt.Config{
 		HTTPClient: httpClient,
-		BaseURL:    localDevelopmentServer, // will be ignored if not set
+		BaseURL:    baseURLsForAlias[apiAlias],
 	})
 
 	serviceAccountConfig := serviceAccounts.NewConfiguration()
 
-	if localDevelopmentServer != "" {
+	if apiAlias == mockAlias {
 		serviceAccountConfig.Servers = serviceAccounts.ServerConfigurations{
 			{
-				URL:         localDevelopmentServer,
-				Description: "Local development",
+				URL:         baseURLsForAlias[apiAlias],
+				Description: "RHOAS mock server",
 			},
 		}
 	}
