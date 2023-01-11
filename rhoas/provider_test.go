@@ -26,8 +26,8 @@ func TestProviderConfigure(t *testing.T) {
 
 // TestProviderConfigureLocalServer checks that the RHOAS provider can be configured to work with a local server
 func TestProviderConfigureLocalServer(t *testing.T) {
-	os.Setenv(rhoas.LocalDevelopmentEnv, "http://localhost:8000")
-	defer os.Setenv(rhoas.LocalDevelopmentEnv, "")
+	os.Setenv("API", "mock")
+	defer os.Setenv("API", "")
 
 	diag := rhoas.Provider().Configure(context.TODO(), &terraform.ResourceConfig{})
 	assert.Empty(t, diag, "got unexpected diagnostics")
